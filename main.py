@@ -1,3 +1,7 @@
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+from fastapi.middleware.cors import CORSMiddleware
+import os
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 import uuid, random, bcrypt
 import sqlite3
@@ -45,11 +49,24 @@ conn.commit()
 
 app = FastAPI()
 
-from fastapi.responses import FileResponse
+# =========================
+# STATIC + FRONTEND
+# =========================
+
+app.mount("/assets", StaticFiles(directory="assets"), name="assets")
 
 @app.get("/")
-def serve_frontend():
+def serve():
     return FileResponse("index.html")
+
+# CORS (for safety)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # =========================
 # STORAGE (temporary memory)
@@ -336,3 +353,8 @@ async def websocket_endpoint(ws: WebSocket):
             # 🔥 DELETE ROOM IF EMPTY
             if not rooms[current_code]["users"]:
                 rooms.pop(current_code)
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 8000))
+    import uvicorn
+    uvicorn.run("main:app", host="0.0.0.0", port=port)
