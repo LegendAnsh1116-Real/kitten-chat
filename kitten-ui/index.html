@@ -1490,7 +1490,7 @@ window.addEventListener("load", () => {
     const previewImg = document.getElementById("previewImg");
     const removeImgBtn = document.getElementById("removeImgBtn");
     const uploadArea = document.getElementById("photoRow"); // Using ID for reliability
-
+    const codeInputs = document.querySelectorAll(".code-inputs input");
     // --- 2. STATE ---
     let selectedGender = null;
     let customImgData = null;
@@ -1635,28 +1635,55 @@ window.addEventListener("load", () => {
         }
     }
 
-    // --- 6. WEBSOCKET ---
-    const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+    // --- 6. WEBSOCKET (FIXED FOR CLOUD + NORTHFLANK) ---
 
-    const WS_URL =
-      (window.location.protocol === "https:" ? "wss://" : "ws://") +
-      window.location.host +
-      "/ws";
+    const BACKEND_WS = "wss://site--kitten-chat--gb8rqbd7tm24.code.run/ws";
+    // Example:
+    // const BACKEND_WS = "wss://yourapp.northflank.app/ws";
 
-    const socket = new WebSocket(WS_URL);
-    socket.onopen = () => {
-        user_id = Math.random().toString(36).substring(2); // temp id
-        socketReady = true;
+    let socket;
 
-        socket.send(JSON.stringify({ type: "create_code", code: myGeneratedCode }));
-    };
+    function initSocket() {
+        socket = new WebSocket(BACKEND_WS);
 
-    socket.onmessage = (event) => {
-        const data = JSON.parse(event.data);
+        socket.onopen = () => {
+            user_id = Math.random().toString(36).substring(2);
+            socketReady = true;
 
-        // =========================
+            socket.send(JSON.stringify({
+                type: "create_code",
+                code: myGeneratedCode
+            }));
+        };
+
+        let reconnectDelay = 2000;
+
+        socket.onclose = () => {
+            console.log("Disconnected. Reconnecting...");
+            socketReady = false;
+
+            setTimeout(() => {
+                reconnectDelay = Math.min(reconnectDelay * 1.5, 10000);
+                initSocket();
+            }, reconnectDelay);
+        };
+
+        socket.onerror = (e) => {
+            console.log("Socket error", e);
+        };
+
+        socket.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            handleSocketMessage(data);
+        };
+    }
+
+    // 🔥 START CONNECTION
+    initSocket();
+
+    function handleSocketMessage(data) {
+
         // PAIRED
-        // =========================
         if (data.type === "paired") {
             clearInterval(interval);
 
@@ -1731,7 +1758,7 @@ window.addEventListener("load", () => {
 
             }, 5000); // 🔥 MAIN DELAY (5 sec)
         }
-    };
+    }
 
     // --- 7. PROFILE LOGIC (FIXED FOR ANDROID) ---
     function updatePfpDisplay() {
@@ -1893,6 +1920,7 @@ window.addEventListener("load", () => {
     function showError(msg) {
         clearTimeout(errorTimeout);
 
+        if (!errorPill) return;
         errorPill.textContent = msg;
 
         // 🔥 RESET STATE PROPERLY
@@ -2002,9 +2030,6 @@ window.addEventListener("load", () => {
             resetCodeInputs();
         }
     };
-
-    // Select the inputs again to ensure we have the correct reference
-    const codeInputs = document.querySelectorAll(".code-inputs input");
 
     codeInputs.forEach((input, index) => {
 
@@ -2327,10 +2352,14 @@ window.addEventListener("load", () => {
         // ✅ SHOW MESSAGE INSTANTLY
         addMessage(text, true);
 
-        socket.send(JSON.stringify({
-            type: "send_message",
-            message: text
-        }));
+        if (socketReady && socket) {
+            socket.send(JSON.stringify({
+                type: "send_message",
+                message: text
+            }));
+        } else {
+            showError("Reconnecting...");
+        }
 
         chatInput.value = "";
     };

@@ -2,6 +2,15 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 import os
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+app.mount(
+    "/assets",
+    StaticFiles(directory=os.path.join(BASE_DIR, "assets")),
+    name="assets"
+)
+
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 import uuid, random, bcrypt
 import sqlite3
@@ -48,6 +57,7 @@ CREATE TABLE IF NOT EXISTS messages (
 conn.commit()
 
 app = FastAPI()
+import asyncio
 
 # =========================
 # STATIC + FRONTEND
