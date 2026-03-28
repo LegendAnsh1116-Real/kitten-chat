@@ -46,9 +46,6 @@ conn.commit()
 app = FastAPI()
 
 from fastapi.responses import FileResponse
-from fastapi.staticfiles import StaticFiles
-
-app.mount("/assets", StaticFiles(directory="assets"), name="assets")
 
 @app.get("/")
 def serve_frontend():
