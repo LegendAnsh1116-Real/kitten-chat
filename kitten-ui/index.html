@@ -1584,21 +1584,17 @@ window.addEventListener("load", () => {
 
             if (!socketReady) break;
 
-            window.__codeValid = null;
+            // 🔥 generate instantly (no waiting)
+            newCode = getNewCode();
 
-            socket.send(JSON.stringify({
-                type: "check_code",
-                code: newCode
-            }));
-
-            // wait max 300ms
-            let waitTime = 0;
-            while (window.__codeValid === null && waitTime < 300) {
-                await new Promise(r => setTimeout(r, 20));
-                waitTime += 20;
+            // OPTIONAL: still verify in background (no UI block)
+            if (socketReady) {
+                socket.send(JSON.stringify({
+                    type: "check_code",
+                    code: newCode
+                }));
             }
-
-            if (window.__codeValid === true) break;
+            break;
 
             attempts++;
         }
@@ -1622,7 +1618,7 @@ window.addEventListener("load", () => {
                 pairCode.style.transition = "opacity 0.8s ease-out, transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.15)";
                 pairCode.style.opacity = "1";
                 pairCode.style.transform = "translateY(0)";
-            }, 300);
+            }, 120);
         } else {
             pairCode.textContent = myGeneratedCode.split("").join(" ");
         }
@@ -1685,12 +1681,27 @@ window.addEventListener("load", () => {
 
         if (data.type === "both_profiles_ready") {
 
-           console.log("✅ both_profiles_ready");
+            console.log("✅ both_profiles_ready");
 
-           // send confirmation to server
-           socket.send(JSON.stringify({
-               type: "confirm_profiles"
-           }));
+            // 🔥 SEND MULTIPLE TIMES (ANTI-DROP FIX)
+            let tries = 0;
+
+            const sendConfirm = setInterval(() => {
+
+                if (!socketReady) return;
+
+                socket.send(JSON.stringify({
+                    type: "confirm_profiles"
+                }));
+
+                tries++;
+
+                // stop after 3 attempts
+                if (tries >= 3) {
+                    clearInterval(sendConfirm);
+                }
+
+            }, 300); // send every 300ms (fast but safe)
         }
 
         // PAIRED
@@ -1919,9 +1930,6 @@ window.addEventListener("load", () => {
         // 🔥 SHOW WAITING UI
         startWaitingSplash();
 
-        setTimeout(() => {
-            profileScreen.style.display = "none";
-        }, 350);
     };    
 
     // --- 8. UTILS & PAIRING UI ---

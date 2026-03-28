@@ -253,7 +253,7 @@ async def websocket_endpoint(ws: WebSocket):
                 }
 
                 # ✅ FINAL CHECK
-                if len(room["confirmed"]) == 2 and len(room["users"]) == 2:
+                if len(room["confirmed"]) >= 2 and len(room["users"]) == 2:
 
                     for u in room["users"].values():
                         await u.send_json({
