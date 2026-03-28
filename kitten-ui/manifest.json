@@ -1,0 +1,23 @@
+{
+  "name": "CoupleChat Kaira",
+  "short_name": "Kaira",
+  "start_url": "/index.html",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ff6aa2",
+  "theme_color": "#ff6aa2",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "description": "CoupleChat Kaira is a private chat app for couples to connect, pair securely, and chat in a cute, intimate space."
+}

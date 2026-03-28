@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.kaira.app",
+      "sha256_cert_fingerprints": [
+        "E9:1E:D8:D7:CF:B5:3A:D5:43:F5:3F:6D:AA:93:DD:35:1C:16:8E:36:F8:B6:E9:44:88:7D:83:8B:9C:14:50:20"
+      ]
+    }
+  }
+]

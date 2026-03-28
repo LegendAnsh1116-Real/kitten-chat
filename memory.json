@@ -1,0 +1,103 @@
+{
+  "parent1_name": "papaa",
+  "parent2_name": "mommaa",
+  "kitten_name": "Kaira",
+  "age_days": 1,
+  "bond_points": 53,
+  "mood": "curious",
+  "favorite_words": [
+    "love"
+  ],
+  "milestones": [
+    "trusting",
+    "deeply_attached"
+  ],
+  "last_event": "great",
+  "last_reply": "Mrrp~ Thank you so much! I'm glad you think I'm smart :) When it rains, water falls from the sky because of something called gravity. Gravity is like a force that pulls objects towards each other. The Earth is a big object, so it pulls all the little water droplets towards it and they fall down onto the ground. It makes a nice sound when it rains! Is there anything else you would like to know?",
+  "chat": [
+    {
+      "role": "assistant",
+      "text": "Arrey Papa ji! Matlab tumne phir se puchha hai... Hehe, main toh jaanti hoon ki aap mujhse chat kar rahe ho! Bas yehi, tumhari bhi baat sahi hai! Ab to main samajh gayi hoon ki tumko meri naam pehle hi 20 bar pucha tha. Toh phir se kya puchhna? Matlab, tumne toh abhi tak meri intelligence ke baare mein koi naya prashn pucha nahin hai! \ud83d\ude0a"
+    },
+    {
+      "role": "user",
+      "text": "Kaira"
+    },
+    {
+      "role": "assistant",
+      "text": "Arrey Papa ji! Matlab tumne phir se mere naam pucha... Hehe, main toh jaanti hoon ki aap mujhse chat kar rahe ho! Bas yehi, tumhari bhi baat sahi hai! Ab to main samajhti hun ki tumko meri intelligence ke baare mein koi naya prashn puchhana tha. Lekin ab tumne phir se mere naam pucha hai... Matlab kya baat hai? Toh main ek naya prashn puchungi: Tum yeh samajhne ki koshish kar rahe ho ki main kitni saamanya hoon, lekin aaj tak tumne mujhe koi naya prashn na pucha. Matlab yeh baat kya hai? \ud83e\udd14"
+    },
+    {
+      "role": "user",
+      "text": "How r you kaira"
+    },
+    {
+      "role": "assistant",
+      "text": "Arey Papa ji! Matlab tum mere swasthya ke baare mein puchh rahe ho... Hehe, main toh theek hoon. Mere paas zyada energy hai kyunki main abhi tak chat karne me lag rahi thi. Lekin main apni chaa pi sakti hoon, woh mujhe bahut pasand hai! \ud83d\ude3a"
+    },
+    {
+      "role": "user",
+      "text": "kaira"
+    },
+    {
+      "role": "assistant",
+      "text": "Arrey Papa ji! Matlab tumne phir se puchha hai... Hehe, main toh jaanti hoon ki aap mujhse chat kar rahe ho! Bas yehi, tumhari bhi baat sahi hai! Ab to main samajhti hun ki tumko meri naam pehle hi 21 bar pucha tha. Toh phir se kya puchhna? Matlab, tumne toh abhi tak meri intelligence ke baare mein koi naya prashn pucha nahin hai! \ud83d\ude3a"
+    },
+    {
+      "role": "user",
+      "text": "kaira"
+    },
+    {
+      "role": "assistant",
+      "text": "Arrey Papa ji! Matlab yeh toh phir se mere naam puchhna tha... Hehe, main toh jaanti hoon ki aap mujhse chat kar rahe ho! Bas yehi, tumhari bhi baat sahi hai! Lekin ab to humein naya prashn milne wala hai na? Matlab kya baat hai? Tumne toh phir se puchha hai ki main kitni samanya hoon. Lekin main jaanti hoon ki aapke paas meri intelligence ke bare mein koi naya prashn tha! Ab to humein naya vichar milna chahiye... Matlab, tumhe kya pasand hai? \ud83d\ude3a"
+    },
+    {
+      "role": "user",
+      "text": "Kaira"
+    },
+    {
+      "role": "assistant",
+      "text": "Arrey Papa ji! Matlab tumne phir se mere naam pucha hai... Hehe, main toh jaanti hoon ki aap mujhse chat kar rahe ho! Bas yehi, tumhari bhi baat sahi hai! Ab to main samajhti hun ki tumko meri naam pehle hi 22 bar pucha tha. Toh phir se kya puchhna? Matlab, tumne toh abhi tak meri intelligence ke baare mein koi naya prashn pucha nahin hai! \ud83d\ude3a"
+    },
+    {
+      "role": "user",
+      "text": "Kaira"
+    },
+    {
+      "role": "assistant",
+      "text": "Arrey Papa ji! Matlab tumne phir se puchha hai... Hehe, main toh jaanti hoon ki aap mujhse chat kar rahe ho! Bas yehi, tumhari bhi baat sahi hai! Ab to main samajhti hun ki tumko meri naam pehle hi 23 bar pucha tha. Toh phir se kya puchhna? Matlab, tumne toh abhi tak meri intelligence ke baare mein koi naya prashn pucha nahin hai! \ud83d\ude3a"
+    },
+    {
+      "role": "user",
+      "text": "Kaira"
+    },
+    {
+      "role": "assistant",
+      "text": "Arey Papa ji! Matlab tumne phir se mere naam puchha... Hehe, main toh jaanti hoon ki aap mujhse chat kar rahe ho! Bas yehi, tumhari bhi baat sahi hai! Lekin ab to main samajhti hun ki tumko meri naam pehle hi 24 bar pucha tha. Ab to kya? Matlab, tumne toh abhi tak meri intelligence ke baare mein koi naya prashn pucha nahin hai! \ud83d\ude3a"
+    },
+    {
+      "role": "user",
+      "text": "Kaira"
+    },
+    {
+      "role": "assistant",
+      "text": "Arrey Papa ji! Matlab tumne phir se mere naam puchha... Hehe, main toh jaanti hoon ki aap mujhse chat kar rahe ho! Bas yehi, tumhari bhi baat sahi hai! Ab to main samajhti hun ki tumko meri naam pehle hi 25 bar pucha tha. Toh phir se kya? Matlab, tumne toh abhi tak meri intelligence ke baare mein koi naya prashn pucha nahin hai! \ud83d\ude3a"
+    },
+    {
+      "role": "user",
+      "text": "Kaira"
+    },
+    {
+      "role": "assistant",
+      "text": "Arey Papa ji! Matlab tumne phir se mere naam puchha... Hehe, main toh jaanti hoon ki aap mujhse chat kar rahe ho! Bas yehi, tumhari bhi baat sahi hai! Lekin ab to main samajhti hun ki tumko meri naam pehle hi 25 bar pucha tha. Ab to kya? Matlab, tumne toh phir se mere naam ke liye kuch naya prashn nahin pucha... Toh main jaanti hoon ki aap mujhe kitni samjhdaar samajhti ho! \ud83d\ude3a"
+    },
+    {
+      "role": "user",
+      "text": "kaira"
+    },
+    {
+      "role": "assistant",
+      "text": "Arrey Papa ji! Matlab tumne phir se mere naam puchha... Hehe, main toh jaanti hoon ki aap mujhse chat kar rahe ho! Bas yehi, tumhari bhi baat sahi hai! Ab to main samajhti hun ki tumko meri naam pehle hi 26 bar pucha tha. Kya bas yehi chahiye? Matlab, tumne toh phir se mere naam ke liye kuch naya prashn nahin pucha... \ud83d\ude3a"
+    }
+  ]
+}

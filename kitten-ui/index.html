@@ -1,0 +1,2379 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CoupleChat Kaira</title>
+
+<style>
+
+.chat-top {
+  /* Extend background into the notch area */
+  
+  background: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: calc(env(safe-area-inset-top) + 14px);
+  padding-left: 16px;
+  padding-right: 16px;
+  padding-bottom: 14px;
+}
+
+/* Ensure the splash title/logo is pushed down from the notch */
+#splash {
+  padding-top: calc(env(safe-area-inset-top) + 10vh) !important;
+}
+
+/* Ensure the pairing card isn't too high */
+#pairingScreen {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+* { box-sizing: border-box; font-family: system-ui; }
+
+/* Kill Android tap highlight & focus glow */
+* {
+-webkit-tap-highlight-color: transparent;
+outline: none;
+}
+
+/* 🔒 GLOBAL FONT NORMALIZATION */
+html {
+  -webkit-text-size-adjust: 100%; /* stop Android auto-scaling */
+  text-size-adjust: 100%;
+  background: #ffc9d9;
+}
+
+body {
+  background: #ffc9d9 !important;
+  margin: 0;
+  padding: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+  transition: transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+  /* 📐 SAFE AREA PADDING: Keeps header below the camera notch */
+  padding-top: 0;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+html, body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  min-height: 100svh;
+  overscroll-behavior: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100dvh;
+  background: #ffc9d9; 
+  overflow-x: hidden;
+}
+
+/* Disable text selection everywhere */
+body, * {
+-webkit-user-select: none;
+-moz-user-select: none;
+-ms-user-select: none;
+user-select: none;
+
+-webkit-touch-callout: none; /* iOS */
+}
+
+button {
+outline: none;
+border: none;
+-webkit-tap-highlight-color: transparent;
+}
+
+button:focus,
+button:active {
+outline: none;
+box-shadow: none;
+}
+
+/* ================= SPLASH (IMPROVED) ================= */
+#splash {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+
+  /* 🎨 Diagonal premium gradient */
+  background: linear-gradient(
+    135deg,
+    #ff4f9a 0%,
+    #ff6fb3 35%,
+    #c7a0d8 65%,
+    #6fcad0 100%
+  );
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  /* push content slightly up */
+  padding-top: 18vh;
+}
+
+.splash-logo {
+  margin-bottom: 22px;
+}
+
+.logo-circle {
+  width: 130px;
+  height: 130px;
+  background: #fff;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+
+  /* 🌸 premium soft glow */
+  box-shadow:
+    0 10px 30px rgba(255, 79, 154, 0.35),
+    0 0 60px rgba(255, 79, 154, 0.25),
+    0 0 120px rgba(120, 200, 210, 0.25);
+}
+
+.logo-circle::before {
+content: "";
+position: absolute;
+inset: -20px;
+border-radius: 50%;
+background: radial-gradient(
+circle,
+rgba(255,92,154,.35) 0%,
+rgba(255,92,154,.15) 40%,
+transparent 70%
+);
+filter: blur(18px);
+z-index: 0;
+}
+
+.cat-anim {
+width: 56px;
+height: auto;
+z-index: 1;
+}
+
+.heart-icon {
+width: 26px; /* ✅ bigger than before, still smaller than cat */
+height: auto;
+margin-top: 6px;
+z-index: 1;
+}
+
+.heart-icon {
+animation: heartPulse 1.8s ease-in-out infinite;
+}
+
+@keyframes heartPulse {
+0% { transform: scale(1); opacity: 0.9; }
+50% { transform: scale(1.12); opacity: 1; }
+100% { transform: scale(1); opacity: 0.9; }
+}
+
+.splash-title {
+  color: #fff;
+  font-size: 28px;
+  margin-top: 14px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+.splash-sub {
+  color: rgba(255,255,255,.85);
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+.splash-loader {
+  position: absolute;
+  bottom: 90px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.loader{
+width:26px;height:26px;border-radius:50%;
+border:3px solid rgba(255,255,255,.4);
+border-top-color:#fff;
+animation:spin 1s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.tick {
+  display: none;
+}
+
+.tick svg {
+  width: 36px;
+  height: 36px;
+  stroke: #fff;
+  stroke-width: 2; /* ✅ thinner tick */
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.init-text{color:#fff;font-size:13px;margin-top:6px}
+
+/* ================= PAIRING ================= */
+#pairingScreen{
+  position:fixed;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  /* ✅ CLEAN FLAT BG (NO CUT) */
+  background:#ffc9d9;
+}
+
+/* Pairing code should never be selectable */
+.code-box {
+    background: #ffd6e5;
+    border-radius: 16px;
+    padding: 16px;
+    font-size: 26px;
+    letter-spacing: 8px;
+    color: #ff5c9a;
+    font-weight: 700;
+    margin-bottom: 8px;
+    /* Add these lines */
+    display: block;
+    transition: opacity 0.2s, transform 0.2s;
+    /* transition for the vanish phase */
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    will-change: transform, opacity;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    caret-color: transparent;
+}
+
+/* The "Slow Reveal" Animation */
+@keyframes codeSlowReveal {
+    0% {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+.card{
+width:92%;max-width:420px;
+background:#fff;border-radius:26px;
+padding:28px 22px;text-align:center;
+box-shadow: 0 25px 60px rgba(0,0,0,.12);
+will-change: transform;
+transform: translateZ(0);
+position: relative;
+overflow: visible;
+transition: transform 0.35s ease;
+}
+
+.card::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -60px;
+  transform: translateX(-50%);
+
+  width: 90%;
+  height: 120px;
+
+  pointer-events: none;
+
+  background: radial-gradient(
+    ellipse at center,
+    rgba(0,0,0,0.18) 0%,
+    rgba(0,0,0,0.12) 40%,
+    rgba(0,0,0,0.05) 65%,
+    transparent 80%
+  );
+
+  filter: blur(28px);
+  z-index: -1;
+}
+
+/* SVG PAW WITH SOFT GLOW */
+.paw-wrap{
+width:140px;
+height:140px;
+margin:0 auto 20px;
+background:#fff;
+border-radius:50%;
+display:flex;
+align-items:center;
+justify-content:center;
+position:relative;
+
+/* soft bloom glow (NO RING) */
+box-shadow:
+0 0 35px rgba(255,92,154,.25),
+0 0 70px rgba(255,92,154,.18),
+0 0 110px rgba(255,92,154,.12);
+}
+
+.paw-wrap::before{
+content:"";
+position:absolute;
+inset:-22px;
+border-radius:50%;
+background:radial-gradient(
+circle,
+rgba(255,92,154,.35) 0%,
+rgba(255,92,154,.15) 40%,
+transparent 70%
+);
+filter:blur(18px);
+z-index:0;
+}
+
+/* SVG size */
+.paw-wrap img{
+width:68%;
+height:auto;
+z-index:1;
+width:70%;
+height:auto;
+display:block;
+}
+
+h2{color:#ff5c9a;margin-bottom:6px}
+.sub{color:#888;font-size:14px;margin-bottom:18px}
+
+/* Tabs */
+.tabs{
+display:flex;background:#eee;border-radius:14px;overflow:hidden;margin-bottom:18px
+}
+.tabs button{
+flex:1;padding:12px;border:none;background:transparent;
+font-weight:600;color:#888;cursor:pointer
+}
+.tabs .active{background:#ff6aa2;color:#fff}
+
+/* Generate */
+.timer{font-size:12px;color:#999;margin-bottom:14px}
+
+.actions{display:flex;gap:12px}
+.actions button{
+flex:1;padding:12px;border-radius:14px;
+font-size:15px;font-weight:600;cursor:pointer
+}
+.outline{
+border:2px solid #ff6aa2;background:transparent;color:#ff6aa2
+}
+.fill{
+background:#ff6aa2;border:none;color:#fff
+}
+
+/* Refresh icon */
+.refresh svg{width:18px;height:18px;margin-right:6px;transition:.6s}
+
+/* Ultra-smooth premium refresh */
+@keyframes refreshSpin {
+0% {
+transform: rotate(0deg);
+}
+
+55% {
+transform: rotate(450deg); /* strong clockwise */
+}
+
+75% {
+transform: rotate(330deg); /* smooth anti-clockwise return */
+}
+
+100% {
+transform: rotate(360deg); /* settle perfectly */
+}
+}
+
+.refresh svg {
+transform-origin: 50% 50%;
+}
+
+.refresh.animate svg {
+animation: refreshSpin 0.9s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+/* Enter Code */
+.enter-area{display:none}
+.code-inputs{
+display:flex;justify-content:center;gap:10px;margin:14px 0
+}
+/* BASE INPUT */
+.code-inputs input {
+width: 44px;
+height: 52px;
+border-radius: 12px;
+border: 1.5px solid #d6d6d6;
+background: #fff;
+text-align: center;
+font-size: 20px;
+font-weight: 600;
+color: #444;
+outline: none;
+transition:
+border-color .35s ease,
+background .35s ease,
+box-shadow .45s ease,
+transform .25s ease;
+}
+
+.code-inputs input {
+  transform: scale(1);
+}
+
+.code-inputs input.filled {
+  transform: scale(1.04);
+}
+
+/* FOCUSED (EMPTY) — soft paw glow */
+.code-inputs input:focus:not(.filled) {
+border-color: #ff6aa2;
+box-shadow:
+0 0 14px rgba(255,106,162,.25),
+0 0 28px rgba(255,106,162,.18);
+}
+
+/* FILLED — stronger but still soft */
+.code-inputs input.filled {
+background: #ffe4ef;
+border-color: #ff6aa2;
+color: #444;
+box-shadow:
+0 0 18px rgba(255,106,162,.35),
+0 0 38px rgba(255,106,162,.25);
+}
+
+/* 👉 Focused but empty */
+.code-inputs input:focus {
+border-color: #ff6aa2;
+background: #fff;
+
+/* 🌸 soft outward glow */
+box-shadow:
+0 0 0 4px rgba(255, 106, 162, 0.12),
+0 0 18px rgba(255, 106, 162, 0.25);
+}
+
+/* FILLED INPUT — soft glow like paw */
+.code-inputs input.filled {
+background: #ffe3ee; /* light pink fill */
+border-color: #ff6aa2;
+color: #444; /* dark gray text */
+
+/* 🌸 soft outward glow (NO SOLID RING) */
+box-shadow:
+0 0 14px rgba(255, 106, 162, 0.25),
+0 0 32px rgba(255, 106, 162, 0.22),
+0 0 60px rgba(255, 106, 162, 0.16);
+}
+
+.code-inputs input:focus{border-color:#ff6aa2}
+.connect {
+width: 100%;
+margin-top: 12px;
+padding: 14px;
+border-radius: 14px;
+border: none;
+background: #ddd;
+color: #aaa;
+font-weight: 600;
+transition: 
+background 0.35s ease,
+box-shadow 0.45s ease,
+color 0.35s ease,
+transform 0.2s ease;
+}
+
+.connect:active {
+  transform: scale(0.96);
+}
+
+.connect.active {
+background: #ff6aa2;
+color: #fff;
+
+/* 🌸 paw-style soft glow */
+box-shadow:
+0 0 14px rgba(255, 106, 162, 0.25),
+0 0 36px rgba(255, 106, 162, 0.28),
+0 0 70px rgba(255, 106, 162, 0.20);
+}
+
+/* ================= CODE CHANGE ANIMATION ================= */
+
+/* Old code leaves */
+@keyframes codeOut {
+0% {
+opacity: 1;
+transform: translateY(0) scale(1);
+}
+100% {
+opacity: 0;
+transform: translateY(-6px) scale(0.96);
+}
+}
+
+/* New code enters */
+@keyframes codeIn {
+0% {
+opacity: 0;
+transform: translateY(6px) scale(0.96);
+}
+70% {
+opacity: 1;
+transform: translateY(0) scale(1.04); /* soft pop */
+}
+100% {
+opacity: 1;
+transform: translateY(0) scale(1);
+}
+}
+
+/* Utility classes */
+.code-out {
+animation: codeOut 0.18s ease-out forwards;
+}
+
+.code-in {
+animation: codeIn 0.32s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+}
+
+/* ================= ERROR PILL ================= */
+
+.error-pill {
+  position: fixed;
+  left: 50%;
+  bottom: 70px; /* 🔥 LOCK POSITION */
+
+  transform: translateX(-50%);
+
+  background: #ff5c7a;
+  color: #fff;
+  padding: 12px 18px;
+  border-radius: 16px;
+
+  font-size: 14px;
+  font-weight: 500;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+
+  max-width: 80%;
+  line-height: 1.4;
+
+  box-shadow: 0 14px 34px rgba(255, 92, 122, 0.35);
+
+  opacity: 0;
+  pointer-events: none;
+  z-index: 999999;
+
+  transition: opacity 0.2s ease;
+}
+
+.error-pill.show {
+  opacity: 1;
+  transform: translateX(-50%);
+}
+
+/* ===== PROFILE SCREEN - SYMMETRICAL FLOATING UI ===== */
+#profileScreen {
+    display: none;
+    min-height: 100svh;
+    background: #ffc9d9;
+    flex-direction: column;
+}
+
+.profile-container {
+    width: 100%;
+    max-width: 420px;
+    margin: 0 auto;
+    padding-left: 16px;
+    padding-right: 16px;
+    padding-bottom: 10px;
+    
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    --precision-gap: clamp(12px, 3vh, 25px);
+    
+    /* SHIFT UP: Subtracted 2px from the top padding to nudge the pill up */
+    padding-top: calc(env(safe-area-inset-top) + var(--precision-gap) - 4px);
+    gap: var(--precision-gap); 
+    
+    min-height: 100svh;
+    overflow: visible;
+}
+
+/* 1. UPPER WHITE PILL (Header) */
+.profile-top {
+    background: #fff !important;
+    width: 100%; 
+    position: relative !important; 
+    padding: 14px 20px !important; 
+    border-radius: 50px !important; 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    
+    margin: 0 !important;
+    /* Ensure no legacy top offsets interfere */
+    top: 0 !important;
+    flex-shrink: 0;
+}
+
+.profile-top .title {
+    font-weight: 700; 
+    font-size: 20px;
+    color: #505050; /* Premium Dark Grey */
+    letter-spacing: -0.2px;
+    margin: 0;
+}
+
+/* BACK BUTTON - CENTERED & DARK STROKE */
+.back-btn {
+    position: absolute;
+    left: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    display: flex;
+    align-items: center;
+}
+
+.back-btn svg {
+    width: 22px;
+    height: 22px;
+    stroke: #666; 
+    stroke-width: 3.2; 
+    fill: none !important;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/* 2. LOWER WHITE BLOCK (Main Card) */
+.profile-card {
+    background: #fff;
+    width: 100%;
+    border-radius: 35px;
+    padding: 28px 24px 22px;
+    box-shadow: 0 25px 60px rgba(0,0,0,.1);
+    margin: 0 !important;
+    position: relative;
+    background: #ffffff;
+}
+
+/* LOGO SECTION */
+.profile-logo {
+    width: 110px;
+    height: 110px;
+    background: #fff;
+    border-radius: 50%;
+    margin: 0 auto 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 20px rgba(255, 106, 162, 0.25);
+}
+
+.profile-logo img {
+    width: 60px;
+    filter: drop-shadow(0 0 8px rgba(255,106,162,0.3));
+}
+
+.app-name {
+    text-align: center;
+    color: #ff6aa2;
+    margin: 0 0 4px 0;
+    font-size: 22px;
+    font-weight: 700;
+}
+
+.tagline {
+    text-align: center;
+    font-size: 14px;
+    color: #666;
+    font-weight: 550;
+    margin-bottom: 25px;
+}
+
+/* GENDER */
+.gender-row{
+  display:flex;
+  gap:12px;
+  margin-bottom:18px;
+}
+
+.gender-btn {
+  box-shadow: none;
+}
+
+.gender-btn{
+  flex:1;
+  padding:14px;
+  border-radius:14px;
+  background:#e5e5e5;
+  color:#999;
+  font-weight:600;
+}
+
+.gender-btn.active{
+  background:#ff6aa2;
+  color:#fff;
+  box-shadow:0 0 18px rgba(255,106,162,.45);
+}
+
+/* INPUTS */
+label{
+  font-size:17px;
+  color:#444;       /* darker */
+  font-weight:600;  /* stronger */
+}
+
+input{
+  width:100%;
+  padding:14px;
+  border-radius:14px;
+  border:1.5px solid #ddd;
+  margin:6px 0 14px;
+  font-size:15px;
+}
+
+/* PHOTO */
+.photo-row {
+  z-index: 10;
+  position: relative;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent; /* Clean touch on mobile */
+  user-select: none;
+}
+
+/* Default text (Upload Profile Picture) */
+.photo-row span {
+  color: #666;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+/* When image is selected */
+.photo-row span.active {
+  color: #ff6aa2;
+  font-weight: 600;
+}
+
+.pfp-icon{
+  width:46px;
+  height:46px;
+  min-width:46px;
+  min-height:46px;
+
+  border-radius:50%;
+  background:#e0e0e0;
+  transition: background 0.2s ease;
+
+  object-fit: cover;
+  display:block;
+
+  /* 🔑 FORCE SVG SCALE */
+  max-width:100%;
+  max-height:100%;
+}
+
+.pfp-icon svg {
+  width:100%;
+  height:100%;
+}
+
+.pfp-icon.has-image{
+  background:#fff;
+}
+
+.photo-circle{
+  width:46px;
+  height:46px;
+  background:#ff6aa2;
+  border-radius:50%;
+}
+
+/* CREATE BUTTON */
+.create-btn{
+  width:100%;
+  padding:14px;
+  border-radius:18px;
+  border:2px solid #ff6aa2;
+  background:transparent;
+  color:#ff6aa2;
+  font-weight:600;
+  opacity:.6;
+  text-align:center;
+}
+
+.create-btn.active{
+  background:#ff6aa2;
+  color:#fff;
+  opacity:1;
+  box-shadow:0 0 22px rgba(255,106,162,.45);
+}
+
+/* FOOTER RESPONSIVE FIX */
+@media (max-height: 740px) {
+    .profile-card .footer {
+        display: none !important;
+    }
+    /* Pushes UI down slightly on smaller devices where footer is hidden */
+    .profile-container {
+        padding-top: calc(env(safe-area-inset-top) + 26px);
+    }
+}
+
+.footer {
+    text-align: center;
+    margin-top: 25px;
+    border-top: 1px solid #f2f2f2;
+    padding-top: 18px;
+}
+
+.footer strong {
+    font-size: 16px;
+    color: #444;
+    font-weight: 700;
+}
+
+.footer p {
+    font-size: 14px;
+    color: #666;
+}
+
+/* ===== CHAT SCREEN ===== */
+#chatScreen{
+  display:flex;
+  flex-direction:column;
+
+  position:fixed;
+  inset:0;
+
+  height:100vh; /* 🔥 FIXED HEIGHT */
+
+  overflow:hidden;
+}
+
+/* 🔥 BACKGROUND FIXED LAYER */
+#chatScreen::before{
+  content:"";
+  position:fixed;
+  inset:0;
+
+  background: url('assets/chat/background.png') no-repeat center center;
+  background-size: cover;
+
+  z-index:-1;
+
+  pointer-events:none;
+}
+
+/* TOP BAR */
+.chat-top{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+
+  padding:14px 16px;
+
+  /* 🔥 FULL TRANSPARENT */
+  background: transparent;
+  backdrop-filter: none;
+
+  box-shadow: none;
+}
+
+/* CHAT BACK ARROW FIX - NO OVERLAP */
+.chat-back {
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.chat-back svg {
+  width: 24px;
+  height: 24px;
+  stroke: #555;
+  stroke-width: 2.5;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.chat-user{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.chat-avatar{
+  width:36px;
+  height:36px;
+  border-radius:50%;
+}
+
+.chat-name{
+  font-weight:600;
+  font-size:14px;
+}
+
+.chat-status{
+  font-size:12px;
+  color:#4caf50;
+}
+
+.chat-settings{
+  font-size:20px;
+  opacity:.6;
+}
+
+/* ARENA */
+.arena{
+  padding:20px 0;
+  text-align:center;
+}
+
+.arena-circle{
+  width:130px;
+  height:130px;
+  background:#fff;
+  border-radius:50%;
+  margin:0 auto;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow:0 0 35px rgba(255,106,162,.35);
+}
+
+.arena-circle img{
+  width:60px;
+}
+
+.arena-status{
+  margin-top:10px;
+  display:inline-block;
+  padding:6px 14px;
+  background:#fff;
+  border-radius:14px;
+  color:#ff6aa2;
+  font-size:13px;
+}
+
+/* MESSAGES */
+.messages{
+  flex:1;
+  overflow-y:auto;
+
+  padding:16px 14px 90px;
+
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+
+  scroll-behavior:smooth;
+}
+
+.msg{
+  display:inline-block;
+  max-width:70%;
+
+  padding:10px 12px;
+
+  border-radius:16px;
+
+  font-size:14px;
+  line-height:1.35;
+
+  position:relative;
+
+  animation: msgFade 0.25s ease;
+}
+
+@keyframes msgFade{
+  from{
+    opacity:0;
+    transform: translateY(8px) scale(0.96);
+  }
+  to{
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.msg span{
+  position:absolute;
+  bottom:-14px;
+
+  font-size:10px;
+  opacity:0.6;
+}
+
+/* LEFT SIDE TIME FOR OUTGOING */
+.outgoing span{
+  left:-40px;
+  text-align:left;
+}
+
+/* RIGHT SIDE TIME FOR INCOMING */
+.incoming span{
+  right:-40px;
+  text-align:right;
+}
+
+.incoming{
+  align-self:flex-start;
+
+  background:#ffffff;
+  color:#333;
+
+  border-radius:16px;
+  border-bottom-left-radius:6px;
+
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.outgoing{
+  align-self:flex-end;
+
+  background: linear-gradient(
+    135deg,
+    #ff9fbc,
+    #ff7fa8
+  );
+
+  color:#fff;
+
+  border-radius:16px;
+  border-bottom-right-radius:6px;
+
+  box-shadow: 0 6px 16px rgba(255, 120, 160, 0.25);
+}
+
+/* SOFT TAIL EFFECT */
+.outgoing::after{
+  content:"";
+  position:absolute;
+  right:-4px;
+  bottom:0;
+
+  width:12px;
+  height:12px;
+
+  background: inherit;
+
+  border-bottom-left-radius:10px;
+
+  transform: rotate(45deg);
+}
+
+.incoming::after{
+  content:"";
+  position:absolute;
+  left:-4px;
+  bottom:0;
+
+  width:12px;
+  height:12px;
+
+  background:#fff;
+
+  border-bottom-right-radius:10px;
+
+  transform: rotate(45deg);
+}
+
+/* INPUT */
+.chat-input{
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+
+  display:flex;
+  align-items:center;
+  gap:8px;
+
+  padding:10px 12px calc(10px + env(safe-area-inset-bottom));
+
+  /* 🔥 FULL TRANSPARENT */
+  background: transparent;
+  backdrop-filter: none;
+
+  box-shadow: none;
+}
+
+.chat-input input{
+  flex:1;
+
+  padding:12px 14px;
+
+  border-radius:22px;
+  border:none;
+
+  background: rgba(255,255,255,0.85);
+
+  backdrop-filter: blur(8px);
+
+  font-size:14px;
+}
+
+.chat-input button{
+  width:38px;
+  height:38px;
+
+  border-radius:50%;
+  border:none;
+
+  background: rgba(255,255,255,0.7);
+
+  backdrop-filter: blur(8px);
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  font-size:16px;
+}
+
+#exitModal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.5);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
+}
+
+.exit-box{
+  background:#fff;
+  padding:20px;
+  border-radius:18px;
+  text-align:center;
+  width:80%;
+  max-width:280px;
+}
+
+.exit-actions{
+  display:flex;
+  gap:12px;
+  margin-top:16px;
+}
+
+.exit-actions button{
+  flex:1;
+  padding:12px;
+  border-radius:14px;
+  color:#fff;
+  font-weight:600;
+  border:none;
+}
+
+.msg img{
+  width:100%;
+  border-radius:14px;
+  margin-top:6px;
+}
+
+/* CANCEL BUTTON - ALWAYS PINK */
+#cancelExit {
+  background: #ff6aa2 !important;
+  color: #fff !important;
+  box-shadow: 0 0 18px rgba(255, 106, 162, 0.45);
+}
+
+/* EXIT BUTTON - ALWAYS RED */
+#confirmExit {
+  background: #ff3b3b !important;
+  color: #fff !important;
+  box-shadow: 0 0 18px rgba(255, 59, 59, 0.5);
+}
+
+#removeImgBtn:active {
+    transform: scale(0.96);
+    opacity: 0.9;
+    transition: transform 0.1s ease;
+}
+
+/* Ensure the preview image doesn't look 'squished' on some browsers */
+#previewImg {
+    object-fit: contain;
+    background: #f0f0f0; /* subtle background if image is transparent */
+}
+
+#confirmExit:active, #cancelExit:active {
+    transform: scale(0.96);
+}
+
+#transitionOverlay {
+  position: fixed;
+  inset: 0;
+  backdrop-filter: blur(0px);
+  background: rgba(255, 192, 203, 0);
+
+  z-index: 9998;
+  pointer-events: none;
+
+  transition: 
+    backdrop-filter 0.35s ease,
+    background 0.35s ease;
+}
+
+#transitionOverlay.active {
+  backdrop-filter: blur(12px);
+  background: rgba(255, 192, 203, 0.25);
+}
+
+/* POP ANIMATION */
+@keyframes popIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.92) translateY(30px);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.04) translateY(-6px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.pop-in {
+  animation: popIn 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- SPLASH -->
+<div id="splash">
+<div class="splash-logo">
+<div class="logo-circle">
+<img src="assets/splash/cat.gif" id="catGif" class="cat-anim" alt="Cat">
+<img src="assets/splash/heart.png" class="heart-icon" alt="Heart">
+</div>
+</div>
+
+<div class="splash-title">CoupleChat Kaira</div>
+<div class="splash-sub">Your intimate connection space</div>
+
+<div class="splash-loader">
+<div class="loader" id="loader"></div>
+<div class="tick" id="tick">
+  <svg viewBox="0 0 24 24">
+    <path d="M5 13l4 4L19 7" />
+  </svg>
+</div>
+<div class="init-text" id="initText">Initializing...</div>
+</div>
+</div>
+
+<!-- PAIRING -->
+<div id="pairingScreen">
+  <div class="card">
+
+    <div class="paw-wrap">
+      <img src="assets/icons/paw.svg" alt="Paw">
+    </div>
+
+    <h2>CoupleChat Kaira</h2>
+    <div class="sub">Connect with your partner to start chatting</div>
+
+    <div class="tabs">
+      <button id="genTab" class="active">Generate Code</button>
+      <button id="enterTab">Enter Code</button>
+    </div>
+
+    <!-- GENERATE -->
+    <div id="genArea">
+      <div class="code-box" id="pairCode">A B C D E</div>
+      <div class="timer" id="timer">⏱ Expires in 60s</div>
+
+      <div class="actions">
+        <button class="outline refresh" id="refreshBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12a9 9 0 1 1-3-6.7"/>
+            <polyline points="21 3 21 9 15 9"/>
+          </svg>
+          Refresh
+        </button>
+        <button class="fill" id="shareBtn">Share</button>
+      </div>
+    </div>
+
+    <!-- ENTER -->
+    <div class="enter-area" id="enterArea">
+      <div class="code-inputs">
+           <input type="text" inputmode="text" placeholder="-">
+           <input type="text" inputmode="text" placeholder="-">
+           <input type="text" inputmode="text" placeholder="-">
+           <input type="text" inputmode="text" placeholder="-">
+           <input type="text" inputmode="text" placeholder="-">
+      </div>
+     <button class="connect" id="connectBtn">Connect</button>
+    </div>
+
+  </div>
+</div> <!-- END pairingScreen -->
+
+<!-- PROFILE SCREEN -->
+<div id="profileScreen">
+  <div class="profile-container">
+
+    <!-- TOP BAR -->
+    <div class="profile-top">
+      <button class="back-btn" id="backBtn" aria-label="Back">
+        <svg viewBox="0 0 24 24">
+          <path d="M15 6l-6 6 6 6" />
+        </svg>
+      </button>
+      <span class="title">Your Family Profile</span>
+    </div>
+
+    <!-- CARD -->
+    <div class="profile-card">
+
+      <!-- LOGO PLACEHOLDER -->
+      <div class="profile-logo">
+        <img src="assets/profile/home.svg" alt="Home">
+      </div>
+
+      <h3 class="app-name">FamilyChat</h3>
+      <p class="tagline">Connect and share updates</p>
+
+      <!-- GENDER -->
+      <div class="gender-row">
+        <button class="gender-btn" data-gender="male">MALE</button>
+        <button class="gender-btn" data-gender="female">FEMALE</button>
+      </div>
+
+      <!-- INPUTS -->
+      <label>Parent Name</label>
+      <input id="parentName" placeholder="Your Name">
+
+      <label>Child Name</label>
+      <input id="childName" placeholder="Child’s Name">
+
+      <!-- PHOTO -->
+     <div class="photo-row" id="photoRow">
+       <img id="pfpPreview" src="assets/profile/pfp.png" class="pfp-icon">
+       <span>Upload Profile Picture</span>
+
+       <input
+         type="file"
+         id="pfpInput"
+         accept="image/*"
+         style="display:none"
+       />
+     </div>
+
+
+      <!-- CREATE -->
+      <button id="createProfile" class="create-btn">Create Profile</button>
+
+      <div class="footer">
+        <strong>Quick & Easy Setup</strong>
+        <p>Start connecting with your loved ones instantly!</p>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- CHAT SCREEN -->
+<div id="chatScreen" style="display:none">
+
+  <!-- TOP BAR -->
+  <div class="chat-top">
+    <button class="chat-back" id="chatBackBtn" style="background:none; border:none; padding:10px;">
+      <svg viewBox="0 0 24 24" width="24" height="24" style="fill:none; stroke:#555; stroke-width:2.5; stroke-linecap:round; stroke-linejoin:round;">
+        <path d="M19 12H5M12 19l-7-7 7-7" />
+      </svg>
+    </button>
+
+    <div class="chat-user">
+      <img src="assets/profile/pfp.png" class="chat-avatar">
+      <div>
+        <div class="chat-name">Sarah</div>
+        <div class="chat-status">online</div>
+      </div>
+    </div>
+
+    <div class="chat-settings">⚙️</div>
+  </div>
+
+  <!-- MESSAGES -->
+  <div class="messages"></div>
+
+  <!-- INPUT -->
+  <div class="chat-input">
+    <button class="emoji">😊</button>
+    <input id="chatInput" placeholder="Type a message…">
+    <button class="attach">📎</button>
+    <button id="sendBtn">📤</button>
+  </div>
+</div>
+
+<script>
+window.addEventListener("load", () => {
+
+    // --- 1. ELEMENT SELECTION ---
+    const splash = document.getElementById("splash");
+    const loader = document.getElementById("loader");
+    const tick = document.getElementById("tick");
+    const initText = document.getElementById("initText");
+    const pairingScreen = document.getElementById("pairingScreen");
+    const profileScreen = document.getElementById("profileScreen");
+    const chatScreen = document.getElementById("chatScreen");
+    const errorPill = document.getElementById("errorPill");
+    const exitModal = document.getElementById("exitModal");
+
+    const pairCode = document.getElementById("pairCode");
+    const timerEl = document.getElementById("timer");
+    const refreshBtn = document.getElementById("refreshBtn");
+    const shareBtn = document.getElementById("shareBtn");
+    const connectBtn = document.getElementById("connectBtn");
+    const genTab = document.getElementById("genTab");
+    const enterTab = document.getElementById("enterTab");
+    const genArea = document.getElementById("genArea");
+    const enterArea = document.getElementById("enterArea");
+
+    const genderBtns = document.querySelectorAll(".gender-btn");
+    const pfpPreview = document.getElementById("pfpPreview");
+    const pfpInput = document.getElementById("pfpInput");
+    const parentInput = document.getElementById("parentName");
+    const childInput = document.getElementById("childName");
+    const createBtn = document.getElementById("createProfile");
+
+    const confirmExit = document.getElementById("confirmExit");
+    const cancelExit = document.getElementById("cancelExit");
+
+    const imgPreviewModal = document.getElementById("imgPreview");
+    const previewImg = document.getElementById("previewImg");
+    const removeImgBtn = document.getElementById("removeImgBtn");
+    const uploadArea = document.getElementById("photoRow"); // Using ID for reliability
+
+    // --- 2. STATE ---
+    let selectedGender = null;
+    let customImgData = null;
+    let socketReady = false;
+    let timer = 60;
+    let interval = null;
+    let myGeneratedCode = ""; 
+    let isCodeLocked = false;
+    let activeScreen = "pairing";
+    let user_id = null;
+
+    // --- 3. THE "DEEP RESET" FUNCTION ---
+    function resetFullApp() {
+        selectedGender = null;
+        customImgData = null;
+        activeScreen = "pairing";
+        parentInput.value = "";
+        childInput.value = "";
+        pfpInput.value = "";
+        genderBtns.forEach(b => b.classList.remove("active"));
+        createBtn.classList.remove("active");
+        pfpPreview.src = "assets/profile/pfp.png";
+        pfpPreview.classList.remove("has-image");
+        codeInputs.forEach(i => {
+            i.value = "";
+            i.classList.remove("filled");
+
+            // 🔥 FULL UNLOCK FIX
+            i.removeAttribute("readonly");
+            i.style.pointerEvents = "auto";
+        });
+
+        isCodeLocked = false;
+        connectBtn.classList.remove("active");
+        genArea.style.display = "block";
+        enterArea.style.display = "none";
+        genTab.classList.add("active");
+        enterTab.classList.remove("active");
+        generateCode(true);
+        startTimer();
+    }
+
+    // --- 4. STARTUP & LOADING ---
+    function getNewCode() {
+        const CHARS = "ABCDEFGHJKLNPQRSTUVXYZ123456789";
+        return [...Array(5)].map(() => CHARS[Math.floor(Math.random() * CHARS.length)]).join("");
+    }
+    
+    myGeneratedCode = getNewCode();
+    pairCode.textContent = myGeneratedCode.split("").join(" ");
+
+    // --- 4. STARTUP & LOADING ---
+    setTimeout(() => {
+
+        if(loader) loader.style.display = "none";
+        if(initText) initText.style.display = "none"; // 🔥 Hide text immediately with loader
+        if(tick) tick.style.display = "block";
+    
+        setTimeout(() => {
+            splash.style.opacity = "0";
+            setTimeout(() => {
+                splash.style.display = "none";
+                pairingScreen.style.display = "flex";
+                startTimer();
+            }, 400);
+        }, 800);
+    }, 1500);
+
+    // --- 5. TIMER & CODE ---
+    function startTimer() {
+        clearInterval(interval);
+        timer = 60;
+        updateTimerText();
+        interval = setInterval(() => {
+            timer--;
+            updateTimerText();
+            if (timer <= 0) generateCode();
+        }, 1000);
+    }
+    function updateTimerText() {
+        if (timerEl) timerEl.textContent = `⏱ Expires in ${timer}s`;
+    }
+
+    async function generateCode(silent = false) {
+
+        let attempts = 0;
+        let newCode = "";
+
+        while (attempts < 5) {
+            newCode = getNewCode();
+
+            if (!socketReady) break;
+
+            window.__codeValid = null;
+
+            socket.send(JSON.stringify({
+                type: "check_code",
+                code: newCode
+            }));
+
+            // wait max 300ms
+            let waitTime = 0;
+            while (window.__codeValid === null && waitTime < 300) {
+                await new Promise(r => setTimeout(r, 20));
+                waitTime += 20;
+            }
+
+            if (window.__codeValid === true) break;
+
+            attempts++;
+        }
+
+        myGeneratedCode = newCode;
+        timer = 60;
+
+        if (!silent) {
+            pairCode.style.opacity = "0";
+            pairCode.style.transform = "translateY(-12px)";
+    
+            setTimeout(() => {
+                pairCode.textContent = myGeneratedCode.split("").join(" ");
+        
+                pairCode.style.transition = "none";
+                pairCode.style.transform = "translateY(15px)";
+                pairCode.style.opacity = "0";
+        
+                void pairCode.offsetWidth;
+        
+                pairCode.style.transition = "opacity 0.8s ease-out, transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.15)";
+                pairCode.style.opacity = "1";
+                pairCode.style.transform = "translateY(0)";
+            }, 300);
+        } else {
+            pairCode.textContent = myGeneratedCode.split("").join(" ");
+        }
+
+        if (socketReady) {
+            socket.send(JSON.stringify({
+                type: "create_code",
+                code: myGeneratedCode
+            }));
+        }
+    }
+
+    // --- 6. WEBSOCKET ---
+    const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+
+    const WS_URL = location.origin.replace("http", "ws") + "/ws";
+
+    const socket = new WebSocket(WS_URL);
+    socket.onopen = () => {
+        user_id = Math.random().toString(36).substring(2); // temp id
+        socketReady = true;
+
+        socket.send(JSON.stringify({ type: "create_code", code: myGeneratedCode }));
+    };
+
+    socket.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+
+        // =========================
+        // PAIRED
+        // =========================
+        if (data.type === "paired") {
+            clearInterval(interval);
+
+            smoothTransition(profileScreen, pairingScreen);
+            activeScreen = "profile";
+        }
+
+        // =========================
+        // CODE VALIDATION
+        // =========================
+        else if (data.type === "code_valid") {
+            window.__codeValid = true;
+        }
+
+        else if (data.type === "connected") {
+            user_id = data.user_id;
+        }
+
+        else if (data.type === "code_invalid") {
+            window.__codeValid = false;
+        }
+
+        // =========================
+        // ERROR
+        // =========================
+        else if (data.type === "error") {
+            showError(data.message || "Invalid Code");
+            resetCodeInputs();
+        }
+
+        else if (data.type === "new_message") {
+            addMessage(data.message, data.sender === user_id);
+        }
+
+        // =========================
+        // PARTNER READY (SYNC + DELAY)
+        // =========================
+        else if (data.type === "partner_ready") {
+
+            console.log("🔥 partner_ready received", data);
+
+            // STEP 1: show loader for minimum 5 seconds
+            loader.style.display = "block";
+            tick.style.display = "none";
+            initText.textContent = "Syncing profiles...";
+
+            setTimeout(() => {
+                initText.textContent = "Almost there...";
+            }, 2500);
+
+            setTimeout(() => {
+
+                // STEP 2: show success tick
+                loader.style.display = "none";
+                tick.style.display = "block";
+                initText.textContent = "Connected ❤️";
+
+                // STEP 3: small delay for smooth feel
+                setTimeout(() => {
+
+                    splash.style.opacity = "0";
+
+                    setTimeout(() => {
+                        splash.style.display = "none";
+
+                        smoothTransition(chatScreen, profileScreen);
+                        activeScreen = "chat";
+
+                    }, 400);
+
+                }, 800);
+
+            }, 5000); // 🔥 MAIN DELAY (5 sec)
+        }
+    };
+
+    // --- 7. PROFILE LOGIC (FIXED FOR ANDROID) ---
+    function updatePfpDisplay() {
+        if (customImgData) {
+            pfpPreview.src = customImgData;
+            pfpPreview.classList.add("has-image");
+        } else {
+            pfpPreview.classList.remove("has-image");
+            if (selectedGender === "male") pfpPreview.src = "assets/profile/male.png";
+            else if (selectedGender === "female") pfpPreview.src = "assets/profile/female.png";
+            else pfpPreview.src = "assets/profile/pfp.png";
+        }
+    }
+
+    genderBtns.forEach(btn => {
+        btn.onclick = () => {
+            genderBtns.forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            selectedGender = btn.dataset.gender;
+
+            if (!customImgData) {
+                pfpPreview.src =
+                    selectedGender === "male"
+                        ? "assets/profile/male.png"
+                        : "assets/profile/female.png";
+            }
+        };
+    });
+
+    // Find your photoRow/uploadArea click logic and replace it:
+    uploadArea.onclick = function(e) {
+        e.preventDefault();
+    
+        // If we have an image, show preview
+        if (customImgData) {
+            previewImg.src = customImgData;
+            imgPreviewModal.style.display = "flex";
+        } else {
+            // CALL THE KOTLIN BRIDGE DIRECTLY
+            if (window.Android && typeof window.Android.openGallery === "function") {
+                window.Android.openGallery();
+            } else {
+                // Fallback for browser testing
+                document.getElementById("pfpInput").click();
+            }
+        }
+    };
+
+    // Also, ensure the input isn't hidden in a way that makes it "unclickable"
+    // Change your pfpInput HTML to this:
+    // <input type="file" id="pfpInput" accept="image/*" style="visibility:hidden; position:absolute; width:1px; height:1px;">
+
+    // 🔥 THIS UPDATES THE VISUAL ICON ON THE SCREEN
+    window.updateProfilePicture = function(base64Data) {
+       // 1. Update the variable
+       customImgData = "data:image/jpeg;base64," + base64Data;
+
+       // 2. TRIGGER THE REFRESH
+       // We look for the image element with ID 'pfpPreview' (from your actual HTML)
+       const pfpPreview = document.getElementById("pfpPreview");
+    
+       if (pfpPreview) {
+           // This is the "Magic" line - it forces the new image into the circle
+           pfpPreview.src = customImgData;
+        
+           // Ensure it looks like a perfect circle
+           pfpPreview.style.display = "block";
+           pfpPreview.style.objectFit = "cover";
+           pfpPreview.style.borderRadius = "50%";
+       }
+
+       // 3. Update the text label (so it doesn't say "Tap to upload")
+       const photoLabel = document.querySelector('.photo-row span');
+       if (photoLabel) {
+           photoLabel.innerText = "Picture Selected";
+           photoLabel.style.color = "#FF69B4"; // Pink color to match your theme
+       }
+   };
+
+    pfpInput.onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            customImgData = ev.target.result;
+
+            pfpPreview.src = customImgData;
+            pfpPreview.classList.add("has-image");
+
+            const label = document.querySelector(".photo-row span");
+            label.textContent = "Picture Selected";
+            label.classList.add("active");
+        };
+        reader.readAsDataURL(file);
+    };
+
+    removeImgBtn.onclick = () => {
+        customImgData = null;
+
+        // Restore correct image based on gender
+        if (selectedGender === "male") {
+            pfpPreview.src = "assets/profile/male.png";
+        } else if (selectedGender === "female") {
+            pfpPreview.src = "assets/profile/female.png";
+        } else {
+            pfpPreview.src = "assets/profile/pfp.png";
+        }
+ 
+        // Reset visual state
+        pfpPreview.classList.remove("has-image");
+
+        // Reset label text
+        const label = document.querySelector(".photo-row span");
+        label.textContent = "Upload Profile Picture";
+        label.style.color = ""; // return to default
+
+        // Close preview
+        imgPreviewModal.style.display = "none";
+    };
+
+    function validateProfile() {
+        const valid = selectedGender && parentInput.value.trim() !== "" && childInput.value.trim() !== "";
+        if (createBtn) createBtn.classList.toggle("active", valid);
+    }
+
+    [parentInput, childInput].forEach(inp => {
+        if (inp) inp.oninput = validateProfile;
+    });
+
+    createBtn.onclick = () => {
+        if (!createBtn.classList.contains("active")) return;
+
+        console.log("🚀 Sending profile_ready");
+
+        if (socketReady) {
+            socket.send(JSON.stringify({
+                type: "profile_ready",
+                parentName: parentInput.value,
+                childName: childInput.value,
+                gender: selectedGender,
+                profileImg: customImgData || ""
+            }));
+        } else {
+            console.log("❌ Socket not ready");
+        }
+
+        // 🔥 SHOW WAITING UI
+        startWaitingSplash();
+
+        setTimeout(() => {
+            profileScreen.style.display = "none";
+        }, 350);
+    };    
+
+    // --- 8. UTILS & PAIRING UI ---
+    let errorTimeout;
+
+    function showError(msg) {
+        clearTimeout(errorTimeout);
+
+        errorPill.textContent = msg;
+
+        // 🔥 RESET STATE PROPERLY
+        errorPill.style.display = "flex";
+        errorPill.style.opacity = "0";
+        errorPill.style.transform = "translate(-50%, 10px)";
+        errorPill.style.transition = "opacity 0.35s ease, transform 0.35s ease";
+
+        requestAnimationFrame(() => {
+            errorPill.style.opacity = "1";
+            errorPill.style.transform = "translate(-50%, 0)";
+        });
+
+        errorTimeout = setTimeout(() => {
+            errorPill.style.opacity = "0";
+            errorPill.style.transform = "translate(-50%, 10px)";
+
+            setTimeout(() => {
+                errorPill.style.display = "none";
+            }, 300);
+        }, 3500);
+    }
+
+    let isRefreshing = false; // Add this variable at the top of your script state
+
+    refreshBtn.onclick = () => {
+        if (isRefreshing) return; 
+    
+        isRefreshing = true;
+        refreshBtn.classList.add("animate");
+    
+        generateCode();
+        startTimer();
+    
+        // Lock for 1.1s to match the new slow reveal
+        setTimeout(() => {
+            refreshBtn.classList.remove("animate");
+            isRefreshing = false;
+        }, 1100); 
+    };
+
+    shareBtn.onclick = async () => {
+        const shareText = `Pair with me on CoupleChat Kaira! My code is: ${myGeneratedCode}`;
+        
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: 'CoupleChat Kaira',
+                    text: shareText
+                });
+            } catch (err) {
+                // Fallback to copy if user cancels or share fails
+                copyToClipboard(myGeneratedCode);
+            }
+        } else {
+            // Fallback for older browsers
+            copyToClipboard(myGeneratedCode);
+        }
+    };
+
+    function resetCodeInputs() {
+        // 🌸 STEP 1: ADD FADE OUT EFFECT
+        codeInputs.forEach(i => {
+            i.style.transition = "all 0.35s ease";
+            i.classList.remove("filled");
+        });
+
+        connectBtn.style.transition = "all 0.35s ease";
+        connectBtn.classList.remove("active");
+
+        // 🌸 STEP 2: WAIT → THEN CLEAR VALUES
+        setTimeout(() => {
+            codeInputs.forEach(i => {
+                i.value = "";
+                i.style.pointerEvents = "auto";
+                i.removeAttribute("readonly");
+            });
+
+            isCodeLocked = false;
+
+            // 🔒 keep keyboard closed
+            document.activeElement.blur();
+    
+        }, 220); // timing matches animation
+    }
+
+    connectBtn.onclick = (e) => {
+        e.preventDefault(); // 🔥 STOP default behavior
+
+        // 🔥 FORCE CLOSE KEYBOARD
+        document.activeElement.blur();
+
+        if (!connectBtn.classList.contains("active")) return;
+
+        const entered = [...codeInputs].map(i => i.value).join("");
+
+        if (entered === myGeneratedCode) {
+            showError("You can't connect to your own code");
+            resetCodeInputs();
+            return;
+       }
+
+       if (socketReady) {
+            socket.send(JSON.stringify({ type: "join_code", code: entered }));
+        } else {
+            showError("Server connecting...");
+            resetCodeInputs();
+        }
+    };
+
+    // Select the inputs again to ensure we have the correct reference
+    const codeInputs = document.querySelectorAll(".code-inputs input");
+
+    codeInputs.forEach((input, index) => {
+
+      input.addEventListener('focus', (e) => {
+          if (isCodeLocked) {
+              e.target.blur();
+          }
+      });
+
+        // --- HANDLE MANUAL LONG-PRESS PASTE ---
+        input.addEventListener('input', (e) => {
+
+          if (isCodeLocked) {
+              e.target.blur();
+              return;
+          }
+            let val = e.target.value.toUpperCase();
+
+            // 🔥 STRICT CLEAN
+            val = val.replace(/[^A-Z0-9]/g, '');
+
+            const tempValues = Array.from(codeInputs).map((i, idx) =>
+                idx === index ? val : i.value
+            );
+            const fullCode = tempValues.join("");
+
+            // 🔹 HANDLE PASTE
+            if (val.length > 1) {
+                const chars = val.slice(0, 5).split('');
+
+                codeInputs.forEach((box, i) => {
+                    box.value = chars[i] || "";
+                    box.classList.toggle("filled", !!chars[i]);
+                });
+
+                const lastIndex = Math.min(chars.length - 1, 4);
+                codeInputs[lastIndex]?.focus();
+
+                validateConnectBtn();
+                return;
+            }
+
+            // 🔹 SINGLE INPUT
+            if (val.length === 1) {
+                e.target.value = val;
+                e.target.classList.add("filled");
+
+                if (index === codeInputs.length - 1) {
+                    setTimeout(() => {
+                        document.activeElement.blur();
+                    }, 10);
+                }
+
+                if (index < codeInputs.length - 1) {
+                    codeInputs[index + 1].focus();
+                } else {
+                    e.target.blur();
+                }
+            } else {
+                e.target.value = "";
+                e.target.classList.remove("filled");
+            }
+
+            validateConnectBtn();
+        });
+
+        // --- BACKSPACE LOGIC ---
+        input.addEventListener('keydown', (e) => {
+            const fullCode = Array.from(codeInputs).map(i => i.value).join("");
+
+            // 🚫 Prevent overwrite ONLY if CURRENT BOX already filled
+            if (input.value && fullCode.length === codeInputs.length && e.key !== "Backspace") {
+                e.preventDefault();
+                return;
+            }
+
+            if (e.key === 'Backspace') {
+                if (!input.value && index > 0) {
+                    codeInputs[index - 1].focus();
+                    codeInputs[index - 1].value = "";
+                    codeInputs[index - 1].classList.remove("filled");
+                } else {
+                    input.value = "";
+                    input.classList.remove("filled");
+                }
+                validateConnectBtn();
+            }
+        });
+    });
+
+    function validateConnectBtn() {
+        const fullCode = Array.from(codeInputs).map(i => i.value).join("");
+
+        if (fullCode.length === 5) {
+            connectBtn.classList.add("active");
+    
+            // 🔒 LOCK INPUTS (THIS IS WHERE IT SHOULD HAPPEN)
+            isCodeLocked = true;
+
+            codeInputs.forEach(input => {
+                input.blur();
+                input.setAttribute("readonly", true);
+                input.style.pointerEvents = "none";
+            });
+
+        } else {
+            connectBtn.classList.remove("active");
+
+            // 🔓 UNLOCK INPUTS
+            isCodeLocked = false;
+
+            codeInputs.forEach(input => {
+                input.removeAttribute("readonly");
+                input.style.pointerEvents = "auto";
+            });
+        }
+    }
+
+    genTab.onclick = () => {
+        genArea.style.display = "block"; enterArea.style.display = "none";
+        genTab.classList.add("active"); enterTab.classList.remove("active");
+    };
+    enterTab.onclick = () => {
+        enterArea.style.display = "block"; genArea.style.display = "none";
+        enterTab.classList.add("active"); genTab.classList.remove("active");
+        codeInputs[0].focus();
+    };
+
+    // --- 9. NAVIGATION & EXIT ---
+
+    // 🔥 GLOBAL BRIDGE FOR ANDROID BACK BUTTON
+    window.showExitPopup = function() {
+        // If the image preview is open, close that first
+        if (document.getElementById("imgPreview").style.display === "flex") {
+            document.getElementById("imgPreview").style.display = "none";
+            return;
+        }
+        // Otherwise, show the standard exit/back modal
+        openExitModal(activeScreen);
+    };
+
+    function openExitModal(screen) {
+        activeScreen = screen;
+        const exitMsg = document.getElementById("exitMsg"); 
+        exitModal.style.display = "flex";
+        if (screen === "profile") {
+            exitMsg.textContent = "Go back to pairing screen?";
+            confirmExit.textContent = "Go Back";
+            confirmExit.style.background = "#ff6aa2"; 
+        } else {
+            exitMsg.textContent = "Exit app?";
+            confirmExit.textContent = "Exit App";
+            confirmExit.style.background = "#ff3b3b";
+        }
+    }
+
+    function copyToClipboard(text) {
+
+        // 🔥 Modern method (fast + best)
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(text)
+                .then(() => {
+                    showError("Code Copied!");
+                })
+                .catch(() => fallbackCopy(text));
+        } else {
+            fallbackCopy(text);
+        }
+    }
+
+    function smoothTransition(showEl, hideEl) {
+        const overlay = document.getElementById("transitionOverlay");
+
+        // STEP 1: blur in (SLOWER + SMOOTHER)
+        overlay.style.transition = "backdrop-filter 0.6s ease, background 0.6s ease";
+        overlay.classList.add("active");
+
+        setTimeout(() => {
+
+            // STEP 2: switch screens
+            hideEl.style.display = "none";
+            showEl.style.display = "flex";
+
+            // STEP 3: smoother pop
+            showEl.style.animation = "popIn 0.65s cubic-bezier(0.16, 1, 0.3, 1)";
+
+            setTimeout(() => {
+                showEl.style.animation = "";
+            }, 650);
+
+            // STEP 4: blur out slower
+            setTimeout(() => {
+                overlay.classList.remove("active");
+            }, 150);
+    
+        }, 320); // 🔥 was 180 → now smoother
+    }
+
+    function startWaitingSplash() {
+
+        splash.style.display = "flex";
+        splash.style.transition = "none";
+        splash.style.opacity = "0";
+
+        requestAnimationFrame(() => {
+            splash.style.transition = "opacity 0.4s ease";
+            splash.style.opacity = "1";
+        });
+
+        loader.style.display = "block";
+        tick.style.display = "none";
+        loader.style.opacity = "1";  
+        tick.style.opacity = "1";
+
+        initText.style.display = "block";
+        initText.textContent = "Waiting for your partner...";
+    }
+
+    // ✅ KEEP your old method as fallback (GOOD PART)
+    function fallbackCopy(text) {
+        const tempInput = document.createElement("input");
+        tempInput.value = text;
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        document.execCommand("copy");
+        document.body.removeChild(tempInput);
+
+        // ❌ REMOVE Toast → causes crash
+        // Toast.makeText("Code Copied!", Toast.LENGTH_SHORT).show();
+
+        // ✅ Replace with this
+        showError("Code Copied!");
+    }
+
+    confirmExit.onclick = () => {
+
+        // 🔥 ALWAYS CLOSE MODAL FIRST
+        exitModal.style.display = "none";
+
+        if (activeScreen === "profile") {
+
+            smoothTransition(pairingScreen, profileScreen);
+
+            setTimeout(() => {
+                resetFullApp();
+            }, 400); // match animation
+
+        } else {
+            if (window.Android && window.Android.closeApp) {
+                window.Android.closeApp();
+            }
+        }
+    };
+
+    cancelExit.onclick = () => exitModal.style.display = "none";
+    document.getElementById("backBtn").onclick = () => openExitModal("profile");
+    document.getElementById("chatBackBtn").onclick = () => openExitModal("chat");
+
+    window.history.pushState({ page: 'main' }, '');
+    window.onpopstate = () => {
+        // This handles the physical back button on some older Android versions 
+        // or when the user swipes to go back.
+        window.showExitPopup();
+    };
+
+    imgPreviewModal.onclick = (e) => {
+        if (e.target === imgPreviewModal) imgPreviewModal.style.display = "none";
+    };
+
+    // 🔥 KEYBOARD SMOOTH + ERROR PILL HIDE
+    let lastHeight = window.innerHeight;
+
+    window.addEventListener("resize", () => {
+        const newHeight = window.innerHeight;
+
+        const keyboardOpen = newHeight < lastHeight - 100;
+
+        if (keyboardOpen) {
+
+            const card = document.querySelector(".card");
+
+            card.style.transform = "translateY(-80px)";
+
+            // 🔥 instant hide when keyboard opens
+            if (errorPill) {
+                errorPill.style.transition = "none";
+                errorPill.style.transform = "translate(-50%, 200px)";
+                errorPill.style.opacity = "0";
+                errorPill.style.display = "none";
+            }
+
+        } else {
+
+            const card = document.querySelector(".card");
+
+            card.style.transform = "translateY(0)";
+
+            // ✅ restore normal animation
+            if (errorPill) {
+                errorPill.style.transition = "opacity 0.35s ease";
+            }
+        }
+
+        lastHeight = newHeight;
+    });
+
+    // =========================
+    // CHAT SYSTEM
+    // =========================
+
+    const chatInput = document.getElementById("chatInput");
+    const sendBtn = document.getElementById("sendBtn");
+    const messagesBox = document.querySelector(".messages");
+
+    // 🔥 SEND MESSAGE
+    sendBtn.onclick = () => {
+        const text = chatInput.value.trim();
+        if (!text) return;
+
+        // ✅ SHOW MESSAGE INSTANTLY
+        addMessage(text, true);
+
+        socket.send(JSON.stringify({
+            type: "send_message",
+            message: text
+        }));
+
+        chatInput.value = "";
+    };
+
+    // 🔥 ADD MESSAGE TO UI
+    function addMessage(text, isMe) {
+        const msg = document.createElement("div");
+        msg.className = "msg " + (isMe ? "outgoing" : "incoming");
+
+        msg.innerHTML = `
+            <p>${text}</p>
+            <span>${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+        `;
+
+        messagesBox.appendChild(msg);
+
+        // auto scroll
+        messagesBox.scrollTop = messagesBox.scrollHeight;
+    }    
+});
+</script>
+
+<div id="imgPreview" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:10000; align-items:center; justify-content:center; padding:20px; backdrop-filter: blur(4px);">
+  <div style="background:#fff; padding:20px; border-radius:28px; width:100%; max-width:350px; text-align:center;">
+    <div style="width:100%; background:#f0f0f0; border-radius:18px; overflow:hidden; margin-bottom:20px;">
+      <img id="previewImg" style="width:100%; max-height:50vh; display:block; object-fit:contain;">
+    </div>
+    <div style="display:flex; flex-direction:column; gap:12px;">
+      <button id="removeImgBtn" style="width:100%; padding:16px; border-radius:16px; background:#ff3b3b; color:#fff; font-weight:700; border:none;">Remove Picture</button>
+      <button onclick="document.getElementById('imgPreview').style.display='none'" style="width:100%; padding:16px; border-radius:16px; background:#f0f0f2; color:#333; font-weight:600; border:none;">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="errorPill" class="error-pill"></div>
+
+<div id="exitModal" style="display:none"> 
+  <div class="exit-box">
+    <p id="exitMsg" style="font-weight:600; color:#444; margin-bottom: 20px;">Exit app?</p>
+    <div class="exit-actions">
+      <button id="cancelExit">Cancel</button>
+      <button id="confirmExit">Exit</button>
+    </div>
+  </div>
+</div>
+
+<div id="transitionOverlay"></div>
+</body>
+</html>
