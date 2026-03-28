@@ -57,11 +57,11 @@ import asyncio
 # STATIC + FRONTEND
 # =========================
 
-app.mount("/assets", StaticFiles(directory="assets"), name="assets")
+app.mount("/assets", StaticFiles(directory="kitten-ui/assets"), name="assets")
 
 @app.get("/")
 def serve():
-    return FileResponse("index.html")
+    return FileResponse("kitten-ui/index.html")
 
 # CORS (for safety)
 app.add_middleware(
