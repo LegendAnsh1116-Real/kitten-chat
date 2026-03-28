@@ -1683,8 +1683,18 @@ window.addEventListener("load", () => {
 
     function handleSocketMessage(data) {
 
+        if (data.type === "both_profiles_ready") {
+
+           console.log("✅ both_profiles_ready");
+
+           // send confirmation to server
+           socket.send(JSON.stringify({
+               type: "confirm_profiles"
+           }));
+        }
+
         // PAIRED
-        if (data.type === "paired") {
+        else if (data.type === "paired") {
             clearInterval(interval);
 
             smoothTransition(profileScreen, pairingScreen);
@@ -1721,7 +1731,7 @@ window.addEventListener("load", () => {
         // =========================
         // PARTNER READY (SYNC + DELAY)
         // =========================
-        else if (data.type === "partner_ready") {
+        else if (data.type === "start_chat") {
 
             console.log("🔥 partner_ready received", data);
 

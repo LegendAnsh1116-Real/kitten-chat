@@ -148,15 +148,14 @@ async def websocket_endpoint(ws: WebSocket):
                 if code not in rooms:
                     cursor.execute("INSERT INTO pairs (code) VALUES (?)", (code,))
                     conn.commit()
-            
-                # prevent overwrite
-                if code not in rooms:
+
                     rooms[code] = {
                         "users": {},
                         "profiles": {},
                         "pair_id": None,
                         "confirmed": set()
                     }
+
                     await ws.send_json({
                         "type": "connected",
                         "user_id": user_id
@@ -241,16 +240,28 @@ async def websocket_endpoint(ws: WebSocket):
 
                 room = rooms[current_code]
 
+                # ensure set exists
                 if "confirmed" not in room:
                     room["confirmed"] = set()
 
                 room["confirmed"].add(user_id)
 
-                if len(room["confirmed"]) == 2:
+                # 🔥 SAFETY: ensure only valid users counted
+                room["confirmed"] = {
+                    uid for uid in room["confirmed"]
+                    if uid in room["users"]
+                }
+
+                # ✅ FINAL CHECK
+                if len(room["confirmed"]) == 2 and len(room["users"]) == 2:
+
                     for u in room["users"].values():
                         await u.send_json({
                             "type": "start_chat"
                         })
+
+                    # 🔥 OPTIONAL RESET (prevents future bugs)
+                    room["confirmed"].clear()
 
             # =========================
             # CREATE ACCOUNT (ID + PASSWORD)
@@ -370,7 +381,7 @@ async def websocket_endpoint(ws: WebSocket):
             rooms[current_code].get("confirmed", set()).discard(user_id)
             rooms[current_code]["users"].pop(user_id, None)
             rooms[current_code]["profiles"].pop(user_id, None)
-
+            
             # 🔥 DELETE ROOM IF EMPTY
             if not rooms[current_code]["users"]:
                 rooms.pop(current_code)
