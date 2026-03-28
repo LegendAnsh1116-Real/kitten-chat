@@ -1638,11 +1638,10 @@ window.addEventListener("load", () => {
     // --- 6. WEBSOCKET ---
     const protocol = window.location.protocol === "https:" ? "wss" : "ws";
 
-    const ws = new WebSocket(
-      (location.protocol === "https:" ? "wss://" : "ws://") +
-      location.host +
-      "/ws"
-    );
+    const WS_URL =
+      (window.location.protocol === "https:" ? "wss://" : "ws://") +
+      window.location.host +
+      "/ws";
 
     const socket = new WebSocket(WS_URL);
     socket.onopen = () => {
