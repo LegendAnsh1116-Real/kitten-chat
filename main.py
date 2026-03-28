@@ -45,6 +45,12 @@ conn.commit()
 
 app = FastAPI()
 
+from fastapi.responses import FileResponse
+
+@app.get("/")
+def serve_frontend():
+    return FileResponse("index.html")
+
 # =========================
 # STORAGE (temporary memory)
 # =========================

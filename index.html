@@ -5,8 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>CoupleChat Kaira</title>
 
-<link rel="manifest" href="/manifest.json">
-
 <style>
 
 .chat-top {
@@ -875,9 +873,27 @@ input{
 #chatScreen{
   display:flex;
   flex-direction:column;
-  padding-top: env(safe-area-inset-top);
-  height:100svh;
-  background:#ffc9d9;
+
+  position:fixed;
+  inset:0;
+
+  height:100vh; /* 🔥 FIXED HEIGHT */
+
+  overflow:hidden;
+}
+
+/* 🔥 BACKGROUND FIXED LAYER */
+#chatScreen::before{
+  content:"";
+  position:fixed;
+  inset:0;
+
+  background: url('assets/chat/background.png') no-repeat center center;
+  background-size: cover;
+
+  z-index:-1;
+
+  pointer-events:none;
 }
 
 /* TOP BAR */
@@ -885,9 +901,14 @@ input{
   display:flex;
   align-items:center;
   justify-content:space-between;
-  margin-top: 12px; /* gives same spacing as family screen */
+
   padding:14px 16px;
-  background:#fff;
+
+  /* 🔥 FULL TRANSPARENT */
+  background: transparent;
+  backdrop-filter: none;
+
+  box-shadow: none;
 }
 
 /* CHAT BACK ARROW FIX - NO OVERLAP */
@@ -975,55 +996,177 @@ input{
 /* MESSAGES */
 .messages{
   flex:1;
-  padding:14px;
   overflow-y:auto;
+
+  padding:16px 14px 90px;
+
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+
+  scroll-behavior:smooth;
 }
 
 .msg{
-  max-width:75%;
-  padding:12px 14px;
+  display:inline-block;
+  max-width:70%;
+
+  padding:10px 12px;
+
   border-radius:16px;
-  margin-bottom:12px;
+
   font-size:14px;
+  line-height:1.35;
+
+  position:relative;
+
+  animation: msgFade 0.25s ease;
+}
+
+@keyframes msgFade{
+  from{
+    opacity:0;
+    transform: translateY(8px) scale(0.96);
+  }
+  to{
+    opacity:1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .msg span{
-  display:block;
-  font-size:11px;
-  opacity:.5;
-  margin-top:4px;
+  position:absolute;
+  bottom:-14px;
+
+  font-size:10px;
+  opacity:0.6;
+}
+
+/* LEFT SIDE TIME FOR OUTGOING */
+.outgoing span{
+  left:-40px;
+  text-align:left;
+}
+
+/* RIGHT SIDE TIME FOR INCOMING */
+.incoming span{
+  right:-40px;
+  text-align:right;
 }
 
 .incoming{
-  background:#fff;
+  align-self:flex-start;
+
+  background:#ffffff;
+  color:#333;
+
+  border-radius:16px;
+  border-bottom-left-radius:6px;
+
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
 }
 
 .outgoing{
-  background:#ff6aa2;
+  align-self:flex-end;
+
+  background: linear-gradient(
+    135deg,
+    #ff9fbc,
+    #ff7fa8
+  );
+
   color:#fff;
-  margin-left:auto;
+
+  border-radius:16px;
+  border-bottom-right-radius:6px;
+
+  box-shadow: 0 6px 16px rgba(255, 120, 160, 0.25);
+}
+
+/* SOFT TAIL EFFECT */
+.outgoing::after{
+  content:"";
+  position:absolute;
+  right:-4px;
+  bottom:0;
+
+  width:12px;
+  height:12px;
+
+  background: inherit;
+
+  border-bottom-left-radius:10px;
+
+  transform: rotate(45deg);
+}
+
+.incoming::after{
+  content:"";
+  position:absolute;
+  left:-4px;
+  bottom:0;
+
+  width:12px;
+  height:12px;
+
+  background:#fff;
+
+  border-bottom-right-radius:10px;
+
+  transform: rotate(45deg);
 }
 
 /* INPUT */
 .chat-input{
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+
   display:flex;
   align-items:center;
   gap:8px;
-  padding:10px;
-  background:#fff;
+
+  padding:10px 12px calc(10px + env(safe-area-inset-bottom));
+
+  /* 🔥 FULL TRANSPARENT */
+  background: transparent;
+  backdrop-filter: none;
+
+  box-shadow: none;
 }
 
 .chat-input input{
   flex:1;
-  padding:12px;
-  border-radius:18px;
-  border:1px solid #ddd;
+
+  padding:12px 14px;
+
+  border-radius:22px;
+  border:none;
+
+  background: rgba(255,255,255,0.85);
+
+  backdrop-filter: blur(8px);
+
+  font-size:14px;
 }
 
 .chat-input button{
-  background:none;
+  width:38px;
+  height:38px;
+
+  border-radius:50%;
   border:none;
-  font-size:18px;
+
+  background: rgba(255,255,255,0.7);
+
+  backdrop-filter: blur(8px);
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  font-size:16px;
 }
 
 #exitModal{
@@ -1058,6 +1201,12 @@ input{
   color:#fff;
   font-weight:600;
   border:none;
+}
+
+.msg img{
+  width:100%;
+  border-radius:14px;
+  margin-top:6px;
 }
 
 /* CANCEL BUTTON - ALWAYS PINK */
@@ -1291,27 +1440,8 @@ input{
     <div class="chat-settings">⚙️</div>
   </div>
 
-  <!-- ARENA -->
-  <div class="arena">
-    <div class="arena-circle">
-      <img src="assets/icons/paw.svg">
-    </div>
-
-    <div class="arena-status">Kaira is relaxing</div>
-  </div>
-
   <!-- MESSAGES -->
-  <div class="messages">
-    <div class="msg incoming">
-      <p>I love your voice notes! 💕</p>
-      <span>17:58</span>
-    </div>
-
-    <div class="msg outgoing">
-      <p>Can't wait to see you tonight! 🎉</p>
-      <span>18:01</span>
-    </div>
-  </div>
+  <div class="messages"></div>
 
   <!-- INPUT -->
   <div class="chat-input">
@@ -1508,7 +1638,7 @@ window.addEventListener("load", () => {
     // --- 6. WEBSOCKET ---
     const protocol = window.location.protocol === "https:" ? "wss" : "ws";
 
-    const WS_URL = "wss://b216-103-117-9-170.ngrok-free.app/ws";
+    const WS_URL = location.origin.replace("http", "ws") + "/ws";
 
     const socket = new WebSocket(WS_URL);
     socket.onopen = () => {
@@ -2190,6 +2320,9 @@ window.addEventListener("load", () => {
     sendBtn.onclick = () => {
         const text = chatInput.value.trim();
         if (!text) return;
+
+        // ✅ SHOW MESSAGE INSTANTLY
+        addMessage(text, true);
 
         socket.send(JSON.stringify({
             type: "send_message",
