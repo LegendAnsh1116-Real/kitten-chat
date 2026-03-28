@@ -1,4 +1,4 @@
 fastapi
-uvicorn
+uvicorn[standard]
 bcrypt
 websockets

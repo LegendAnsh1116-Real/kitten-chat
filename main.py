@@ -5,12 +5,6 @@ import os
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-app.mount(
-    "/assets",
-    StaticFiles(directory=os.path.join(BASE_DIR, "assets")),
-    name="assets"
-)
-
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 import uuid, random, bcrypt
 import sqlite3
@@ -154,21 +148,22 @@ async def websocket_endpoint(ws: WebSocket):
                 if code not in rooms:
                     cursor.execute("INSERT INTO pairs (code) VALUES (?)", (code,))
                     conn.commit()
-                conn.commit()
             
                 # prevent overwrite
                 if code not in rooms:
                     rooms[code] = {
                         "users": {},
                         "profiles": {},
-                        "pair_id": None
+                        "pair_id": None,
+                        "confirmed": set()
                     }
                     await ws.send_json({
                         "type": "connected",
                         "user_id": user_id
                     })
 
-                rooms[code]["users"][user_id] = ws
+                if user_id not in rooms[code]["users"]:
+                    rooms[code]["users"][user_id] = ws
                 current_code = code
 
             # =========================
@@ -176,6 +171,13 @@ async def websocket_endpoint(ws: WebSocket):
             # =========================
             elif msg_type == "join_code":
                 code = data["code"]
+
+                if current_code == code:
+                    await ws.send_json({
+                        "type": "error",
+                        "message": "You cannot enter your own code"
+                    })
+                    continue
 
                 if code not in rooms:
                     await ws.send_json({
@@ -191,7 +193,8 @@ async def websocket_endpoint(ws: WebSocket):
                     })
                     continue
 
-                rooms[code]["users"][user_id] = ws
+                if user_id not in rooms[code]["users"]:
+                   rooms[code]["users"][user_id] = ws
                 current_code = code
 
                 # notify both users
@@ -227,20 +230,27 @@ async def websocket_endpoint(ws: WebSocket):
                     cursor.execute("UPDATE pairs SET pair_id=? WHERE code=?", (room["pair_id"], current_code))
                     conn.commit()
 
-                    user_ids_list = list(room["profiles"].keys())
+                    for u in room["users"].values():
+                        await u.send_json({
+                            "type": "both_profiles_ready"
+                        })
 
-                    u1, u2 = user_ids_list[0], user_ids_list[1]
+            elif msg_type == "confirm_profiles":
+                if not current_code:
+                    continue
 
-                    # send partner data
-                    await room["users"][u1].send_json({
-                        "type": "partner_ready",
-                        **room["profiles"][u2]
-                    })
+                room = rooms[current_code]
 
-                    await room["users"][u2].send_json({
-                        "type": "partner_ready",
-                        **room["profiles"][u1]
-                    })
+                if "confirmed" not in room:
+                    room["confirmed"] = set()
+
+                room["confirmed"].add(user_id)
+
+                if len(room["confirmed"]) == 2:
+                    for u in room["users"].values():
+                        await u.send_json({
+                            "type": "start_chat"
+                        })
 
             # =========================
             # CREATE ACCOUNT (ID + PASSWORD)
@@ -357,6 +367,7 @@ async def websocket_endpoint(ws: WebSocket):
 
     except WebSocketDisconnect:
         if current_code and current_code in rooms:
+            rooms[current_code].get("confirmed", set()).discard(user_id)
             rooms[current_code]["users"].pop(user_id, None)
             rooms[current_code]["profiles"].pop(user_id, None)
 
@@ -365,6 +376,6 @@ async def websocket_endpoint(ws: WebSocket):
                 rooms.pop(current_code)
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8000))
     import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=port)
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
