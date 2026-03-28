@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 
-app.mount("/assets", StaticFiles(directory="kitten-ui/assets"), name="assets")
+app.mount("/assets", StaticFiles(directory="assets"), name="assets")
 
 @app.get("/")
 async def serve():
