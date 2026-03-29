@@ -166,6 +166,29 @@ async def websocket_endpoint(ws: WebSocket):
                 current_code = code
 
             # =========================
+            # EXPIRE CODE
+            # =========================
+            elif msg_type == "expire_code":
+                code = data.get("code")
+
+                if code in rooms:
+                    # 🔥 remove all users safely
+                    for u in rooms[code]["users"].values():
+                        try:
+                            await u.send_json({
+                                "type": "error",
+                                "message": "expired"
+                            })
+                        except:
+                            pass
+
+                    rooms.pop(code, None)
+
+                # 🔥 also remove from DB
+                cursor.execute("DELETE FROM pairs WHERE code=?", (code,))
+                conn.commit()
+
+            # =========================
             # JOIN CODE
             # =========================
             elif msg_type == "join_code":
@@ -181,7 +204,7 @@ async def websocket_endpoint(ws: WebSocket):
                 if code not in rooms:
                     await ws.send_json({
                         "type": "error",
-                        "message": "Invalid or expired code"
+                        "message": "Expired code"
                     })
                     continue
 

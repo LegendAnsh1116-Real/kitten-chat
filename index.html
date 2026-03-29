@@ -1242,17 +1242,6 @@ input{
   40% { transform: scale(1); opacity: 1; }
 }
 
-.emoji-only {
-  background: transparent !important;
-  box-shadow: none !important;
-  padding: 4px 6px !important;
-  font-size: 28px !important;
-}
-
-.emoji-only p {
-  margin: 0;
-}
-
 /* 🔥 WHATSAPP STACKING CURVES */
 
 /* OUTGOING STACK */
@@ -1707,18 +1696,9 @@ window.addEventListener("load", () => {
             timer--;
             updateTimerText();
             if (timer <= 0) {
-
-                // 🔥 TELL SERVER TO DELETE OLD CODE
-                if (socketReady && myGeneratedCode) {
-                    socket.send(JSON.stringify({
-                        type: "expire_code",
-                        code: myGeneratedCode
-                    }));
-                }
-
                 generateCode();
 
-                // 🔥 CLEAR INPUT UI
+                // 🔥 FORCE INVALIDATE OLD INPUT
                 resetCodeInputs();
 
                 timer = 60;
@@ -1894,13 +1874,7 @@ window.addEventListener("load", () => {
         // ERROR
         // =========================
         else if (data.type === "error") {
-
-            if (data.message === "expired") {
-                showError("Code expired");
-            } else {
-                showError(data.message || "Invalid Code");
-            }
-
+            showError(data.message || "Invalid Code");
             resetCodeInputs();
         }
 
@@ -1910,11 +1884,6 @@ window.addEventListener("load", () => {
             if (data.sender === user_id) return;
 
             addMessage(data.message, false);
-
-            // ✅ SEND SEEN IMMEDIATELY
-            if (socketReady) {
-                socket.send(JSON.stringify({ type: "seen" }));
-            }
         }
 
         // ✅ SEEN EVENT (OUTSIDE new_message)
@@ -2192,15 +2161,6 @@ window.addEventListener("load", () => {
     let isRefreshing = false; // Add this variable at the top of your script state
 
     refreshBtn.onclick = () => {
-
-        // 🔥 EXPIRE OLD CODE BEFORE GENERATING NEW
-        if (socketReady && myGeneratedCode) {
-            socket.send(JSON.stringify({
-                type: "expire_code",
-                code: myGeneratedCode
-            }));
-        }
-
         if (isRefreshing) return; 
     
         isRefreshing = true;
@@ -2668,61 +2628,24 @@ window.addEventListener("load", () => {
         const newHeight = window.innerHeight;
         const keyboardOpen = newHeight < lastHeight - 100;
 
-        // 🔥 update app height
-        document.documentElement.style.setProperty('--app-height', `${newHeight}px`);
-
+        // =========================
+        // 🔥 ERROR PILL (ALL SCREENS)
+        // =========================
         const errorPill = document.getElementById("errorPill");
 
-        // =========================
-        // 🔥 ERROR PILL (KEEP)
-        // =========================
         if (keyboardOpen) {
             if (errorPill) {
+                // ⚡ HARD HIDE (NO FLASH AT ALL)
                 errorPill.style.opacity = "0";
                 errorPill.style.display = "none";
             }
         }
 
-        // =========================
-        // 🔥 SCROLL FIX
-        // =========================
-
-        // ⚠️ IMPORTANT: ADD THIS LINE (YOU DON'T HAVE IT)
-        const messagesBox = document.querySelector(".messages");
-        if (!messagesBox) return;
-
-        // detect if user is near bottom
-        const isNearBottom = () => {
-            return Math.abs(
-                messagesBox.scrollHeight - messagesBox.scrollTop - messagesBox.clientHeight
-            ) < 60;
-        };
-
-        // 👉 KEYBOARD OPEN → FORCE SCROLL HARD
         if (keyboardOpen) {
-
-            let tries = 0;
-
-            const forceScroll = setInterval(() => {
-
+            setTimeout(() => {
                 messagesBox.scrollTop = messagesBox.scrollHeight;
-
-                tries++;
-
-                if (tries > 12) clearInterval(forceScroll);
-
-            }, 30);
+            }, 80);
         }
-
-        // 👉 KEYBOARD CLOSE → SMART SCROLL
-        else {
-            if (isNearBottom()) {
-                setTimeout(() => {
-                    messagesBox.scrollTop = messagesBox.scrollHeight;
-                }, 80);
-            }
-        }
-
         lastHeight = newHeight;
     });
 
@@ -2816,11 +2739,6 @@ window.addEventListener("load", () => {
                 type: "send_message",
                 message: text
             }));
-
-        requestAnimationFrame(() => {
-            messagesBox.scrollTop = messagesBox.scrollHeight;
-        });
-
         } else {
             showError("Reconnecting...");
         }
@@ -2828,10 +2746,6 @@ window.addEventListener("load", () => {
         chatInput.value = "";
     };
     // reset seen when sending new msg
-
-    function isOnlyEmoji(text) {
-        return /^[\p{Emoji}\s]+$/u.test(text.trim());
-    }
 
     // 🔥 ADD MESSAGE TO UI
     function addMessage(text, isMe, status = "sent") {
@@ -2846,15 +2760,14 @@ window.addEventListener("load", () => {
 
         msg.innerHTML = `<div class="msg-text">${text}</div>`;
 
-        // 🔥 EMOJI DETECTION
-        if (isOnlyEmoji(text)) {
-            msg.classList.add("emoji-only");
-        }
-
         wrapper.appendChild(msg);
 
-        // ✅ ONLY FOR YOUR MESSAGES
+        // 🔥 REMOVE OLD META FROM PREVIOUS MESSAGE
         if (isMe) {
+            document.querySelectorAll(".msg-meta").forEach(m => {
+                m.remove();
+            });
+
             const meta = document.createElement("div");
             meta.className = "msg-meta";
             meta.textContent = "Sent just now";
@@ -2869,10 +2782,9 @@ window.addEventListener("load", () => {
 
         msg.classList.add("pop-in");
 
-        // 🔥 FORCE SCROLL ALWAYS
-        requestAnimationFrame(() => {
+        if (isAtBottom()) {
             messagesBox.scrollTop = messagesBox.scrollHeight;
-        });
+        }
     }
     
     function addBubbleEffect(btn) {
@@ -2952,9 +2864,9 @@ window.addEventListener("load", () => {
         `;
 
         messagesBox.appendChild(typing);
-        requestAnimationFrame(() => {
+        if (isAtBottom()) {
             messagesBox.scrollTop = messagesBox.scrollHeight;
-        });
+        }
     }
 
     function removeTypingIndicator() {
