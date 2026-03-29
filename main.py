@@ -368,13 +368,28 @@ async def websocket_endpoint(ws: WebSocket):
                 """, (pair_id, user_id, message))
                 conn.commit()
 
-                # send to both users
-                for u in room["users"].values():
+                # send message (NO seen yet)
+                for uid, u in room["users"].items():
                     await u.send_json({
                         "type": "new_message",
                         "message": message,
                         "sender": user_id
                     })
+           
+            elif msg_type == "seen":
+                if not current_code:
+                     continue
+
+                room = rooms.get(current_code)
+                if not room:
+                    continue
+             
+                # notify OTHER user only
+                for uid, u in room["users"].items():
+                    if uid != user_id:
+                        await u.send_json({
+                            "type": "seen"
+                        })
 
     except WebSocketDisconnect:
         if current_code and current_code in rooms:
