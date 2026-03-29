@@ -1708,7 +1708,7 @@ window.addEventListener("load", () => {
             updateTimerText();
             if (timer <= 0) {
 
-                // 🔥 TELL SERVER TO DELETE OLD CODE
+                // 🔥 EXPIRE OLD CODE
                 if (socketReady && myGeneratedCode) {
                     socket.send(JSON.stringify({
                         type: "expire_code",
@@ -1718,7 +1718,6 @@ window.addEventListener("load", () => {
 
                 generateCode();
 
-                // 🔥 CLEAR INPUT UI
                 resetCodeInputs();
 
                 timer = 60;
@@ -2192,8 +2191,12 @@ window.addEventListener("load", () => {
     let isRefreshing = false; // Add this variable at the top of your script state
 
     refreshBtn.onclick = () => {
+        if (isRefreshing) return; 
 
-        // 🔥 EXPIRE OLD CODE BEFORE GENERATING NEW
+        isRefreshing = true;
+        refreshBtn.classList.add("animate");
+
+        // 🔥 EXPIRE OLD CODE FIRST
         if (socketReady && myGeneratedCode) {
             socket.send(JSON.stringify({
                 type: "expire_code",
@@ -2201,15 +2204,9 @@ window.addEventListener("load", () => {
             }));
         }
 
-        if (isRefreshing) return; 
-    
-        isRefreshing = true;
-        refreshBtn.classList.add("animate");
-    
-        generateCode();
+       generateCode();
         startTimer();
-    
-        // Lock for 1.1s to match the new slow reveal
+
         setTimeout(() => {
             refreshBtn.classList.remove("animate");
             isRefreshing = false;
@@ -2724,6 +2721,15 @@ window.addEventListener("load", () => {
         }
 
         lastHeight = newHeight;
+    });
+
+    window.addEventListener("beforeunload", () => {
+        if (socketReady && myGeneratedCode) {
+            socket.send(JSON.stringify({
+                type: "expire_code",
+                code: myGeneratedCode
+            }));
+        }
     });
 
     // =========================

@@ -204,7 +204,7 @@ async def websocket_endpoint(ws: WebSocket):
                 if code not in rooms:
                     await ws.send_json({
                         "type": "error",
-                        "message": "Expired code"
+                        "message": "Invalid or expired code"
                     })
                     continue
 
