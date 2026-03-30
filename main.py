@@ -396,7 +396,8 @@ async def websocket_endpoint(ws: WebSocket):
                     await u.send_json({
                         "type": "new_message",
                         "message": message,
-                        "sender": user_id
+                        "sender": user_id,
+                        "is_self": uid == user_id
                     })
            
             elif msg_type == "seen":

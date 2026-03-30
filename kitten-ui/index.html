@@ -7,6 +7,11 @@
 
 <style>
 
+:root {
+  --app-height: 100vh;
+  --bg-height: 100vh; /* 🔥 NEW */
+}
+
 .chat-top {
   /* Extend background into the notch area */
   
@@ -51,36 +56,24 @@ html {
 }
 
 body {
-  position: fixed;
-  top: 0;
-  left: 0;
-
-  width: 100vw;
-  height: var(--app-height);
-
-  margin: 0;
-  padding: 0;
-
+  width: 100%;
   overflow: hidden;
-
-  background: #ffc9d9;
+  margin: 0;
 }
 
 html, body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
-  min-height: 100svh;
   overscroll-behavior: none;
   margin: 0;
   padding: 0;
   width: 100%;
   height: 100%;
-  height: var(--app-height);
-  min-height: 100dvh;
   background: #ffc9d9; 
   overflow: hidden;
   overflow-x: hidden;
+  transform: translateZ(0);
 }
 
 /* Disable text selection everywhere */
@@ -908,17 +901,86 @@ input{
   
 /* ===== CHAT SCREEN ===== */
 #chatScreen {
-  display:flex;
-  flex-direction:column;
-  position:fixed;
-  inset:0;
+  position: fixed;
+  inset: 0;
+
+  display: flex;
+  flex-direction: column;
+
   height: var(--app-height);
-  overflow:hidden;
+  overflow: hidden;
 
   background: none;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+}
+
+#fixedBg {
+  position: fixed;
+
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  width: 100vw;
+
+  /* ❌ REMOVE 100vh */
+  /* height: 100vh; */
+
+  /* ✅ LOCK USING REAL PIXELS */
+  height: var(--bg-height);
+
+  background: url("assets/chat/background.png") center/cover no-repeat;
+
+  z-index: -1;
+  opacity: 0; /* hidden by default */
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+
+  transform: translateZ(0);
+  will-change: transform;
+
+  contain: strict;
+  backface-visibility: hidden;
+}
+
+/* 🌄 BACKGROUND (lowest) */
+#fixedBg {
+  z-index: 0;
+}
+
+/* 📱 MAIN SCREENS */
+#pairingScreen,
+#profileScreen,
+#chatScreen {
+  position: fixed;
+  inset: 0;
+  z-index: 20; /* all screens same layer */
+}
+
+/* 🌸 SPLASH (above screens when active) */
+#splash {
+  z-index: 50;
+}
+
+/* 🧊 TRANSITION OVERLAY */
+#transitionOverlay {
+  z-index: 80;
+}
+
+/* ⚠️ ERROR PILL */
+.error-pill {
+  z-index: 90;
+}
+
+/* 🪟 MODALS (TOP MOST) */
+#imgPreview,
+#exitModal {
+  z-index: 100;
+}
+
+/* 🎨 FLOAT BUTTON */
+#bgBtn {
+  z-index: 60;
 }
 
 /* TOP BAR */
@@ -1022,15 +1084,16 @@ input{
 .messages {
   flex:1;
   overflow-y:auto;
-
-  padding:16px 14px 90px;
-
+  padding:16px 14px 75px;
   display:flex;
   flex-direction:column;
   gap:6px;
+  scrollbar-width:none;
+  background:transparent;
+  z-index:2;
 
-  scroll-behavior:smooth;
-  scrollbar-width: none; /* Firefox */
+  transform: translateZ(0);
+  will-change: scroll-position;
 }
 
 .messages::-webkit-scrollbar {
@@ -1108,15 +1171,17 @@ input{
 }
 
 /* 🔥 MESSAGE META (SEEN OUTSIDE LIKE WHATSAPP) */
-.msg-meta{
+.msg-meta {
   font-size:11px;
   margin-top:3px;
 
-  opacity:0.65;
   text-align:right;
-
   padding-right:6px;
-  transition: opacity 0.3s ease;
+
+  transition: all 0.3s ease;
+
+  color: #111 !important;
+  font-weight: 500;
 }
 
 /* spacing for outgoing container */
@@ -1127,23 +1192,24 @@ input{
 }
 
 /* INPUT */
-.chat-input{
-  position:fixed;
-  bottom:0;
-  left:0;
-  right:0;
+.chat-input {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
 
-  display:flex;
-  align-items:center;
-  gap:8px;
+  z-index: 10;
 
-  padding:10px 12px calc(10px + env(safe-area-inset-bottom));
+  display: flex;
+  align-items: center;
+  gap: 8px;
 
-  /* 🔥 FULLY TRANSPARENT — NO BOX AT ALL */
-  background: transparent !important;
-  backdrop-filter: none !important;
+  padding: 10px 12px;
 
-  box-shadow: none;
+  background: transparent;
+
+  /* 🔥 SMOOTH KEYBOARD BEHAVIOR */
+  transform: translateZ(0);
 }
 
 .chat-input input{
@@ -1243,14 +1309,57 @@ input{
 }
 
 .emoji-only {
-  background: transparent !important;
-  box-shadow: none !important;
-  padding: 4px 6px !important;
-  font-size: 28px !important;
+  all: unset !important;
+
+  display: inline-block !important;
+  flex-direction: column;
+  align-items: center;
+
+  font-size: 30px !important;
+  line-height: 1.4;
+
+  max-width: 75%;
+  word-break: break-word;
+
+  margin: 2px 0;
 }
 
-.emoji-only p {
-  margin: 0;
+/* REMOVE TEXT BEHAVIOR */
+.emoji-only div {
+  white-space: normal;
+}
+
+/* 🎯 KEY FIX — EACH EMOJI AS BLOCK */
+.emoji-only span {
+  font-size: 30px;
+  display: inline-block;
+
+  margin: 0px; /* 👈 REAL spacing instead of letter-spacing */
+
+  transform-origin: center;
+}
+
+/* remove bubble */
+.msg.emoji-only.incoming,
+.msg.emoji-only.outgoing {
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+/* REMOVE TEXT WRAPPER EFFECT */
+.emoji-only .msg-text {
+  background: none;
+  padding: 0;
+}
+
+/* 🚫 REMOVE ANY BUBBLE STYLE FROM EMOJI */
+.msg.emoji-only.incoming,
+.msg.emoji-only.outgoing {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
 }
 
 /* 🔥 WHATSAPP STACKING CURVES */
@@ -1357,21 +1466,6 @@ input{
   }
 }
 
-@keyframes bubblePress {
-  0% {
-    transform: scale(1);
-  }
-  40% {
-    transform: scale(0.92);
-  }
-  70% {
-    transform: scale(1.05);
-  }
-  100% {
-    transform: scale(1);
-  }
-}
-
 .bubble-press {
   animation: bubblePress 0.35s cubic-bezier(0.22, 0.61, 0.36, 1);
 }
@@ -1384,6 +1478,8 @@ input{
 </head>
 
 <body>
+
+<div id="fixedBg"></div>
 
 <!-- SPLASH -->
 <div id="splash">
@@ -1579,7 +1675,12 @@ window.addEventListener("load", () => {
 
     // --- 1. ELEMENT SELECTION ---
     const realHeight = window.innerHeight;
+
+    // ✅ layout height (can change)
     document.documentElement.style.setProperty('--app-height', `${realHeight}px`);
+
+    // ✅ background height (LOCKED forever)
+    document.documentElement.style.setProperty('--bg-height', `${realHeight}px`);
     const splash = document.getElementById("splash");
     const loader = document.getElementById("loader");
     const tick = document.getElementById("tick");
@@ -1618,7 +1719,9 @@ window.addEventListener("load", () => {
     const uploadArea = document.getElementById("photoRow"); // Using ID for reliability
     const codeInputs = document.querySelectorAll(".code-inputs input");
     // --- 2. STATE ---
+    let sentMessages = new Set();
     let lastSeenElement = null;
+    let lastSeenLocked = null;
     let lastSeenTime = null;
     let isTransitioning = false;
     let isNavigating = false;
@@ -1633,6 +1736,8 @@ window.addEventListener("load", () => {
     let fromSplash = true;
     let suppressAutoBubble = false;
     let user_id = null;
+    let isUserAtBottom = true;
+    let isUserScrolling = false;
 
     // --- 3. THE "DEEP RESET" FUNCTION ---
     function resetFullApp() {
@@ -1660,8 +1765,6 @@ window.addEventListener("load", () => {
         genArea.style.display = "block";
         enterArea.style.display = "none";
 
-        genTab.classList.add("active");
-        enterTab.classList.remove("active");
         genTab.classList.add("active");
         enterTab.classList.remove("active");
         generateCode(true);
@@ -1730,6 +1833,19 @@ window.addEventListener("load", () => {
             timerEl.innerHTML = `⏱ Expires in ${timer}s`;
         }
     }
+
+    let REAL_HEIGHT = window.innerHeight;
+
+    function updateAppHeight() {
+      // ❌ DO NOT update on resize (keyboard breaks it)
+      document.documentElement.style.setProperty('--app-height', `${REAL_HEIGHT}px`);
+    }
+
+    updateAppHeight();
+    window.addEventListener("orientationchange", () => {
+      REAL_HEIGHT = window.innerHeight; // update only on rotate
+      updateAppHeight();
+    });
 
     async function generateCode(silent = false) {
 
@@ -1894,6 +2010,8 @@ window.addEventListener("load", () => {
         // =========================
         else if (data.type === "error") {
 
+            if (suppressError && data.message === "expired") return;
+
             if (data.message === "expired") {
                 showError("Code expired");
             } else {
@@ -1905,39 +2023,55 @@ window.addEventListener("load", () => {
 
         else if (data.type === "new_message") {
 
-            // ❌ DON'T re-add your own message
-            if (data.sender === user_id) return;
+            // ✅ FIX: ignore your own messages using stable flag
+            if (data.is_self === true) return;
+
+            // 🔥 HARD RESET previous seen meta
+            if (lastSeenLocked) {
+                const old = lastSeenLocked;
+
+                old.style.transition = "opacity 0.25s ease";
+                old.style.opacity = "0";
+
+                setTimeout(() => {
+                    if (old.parentNode) old.remove();
+                }, 250);
+
+                lastSeenLocked = null;
+                lastSeenElement = null;
+            }
 
             addMessage(data.message, false);
-
-            // ✅ SEND SEEN IMMEDIATELY
-            if (socketReady) {
-                socket.send(JSON.stringify({ type: "seen" }));
-            }
         }
 
         // ✅ SEEN EVENT (OUTSIDE new_message)
         else if (data.type === "seen") {
 
-            const all = document.querySelectorAll(".outgoing");
+            if (!lastSeenElement) return;
 
-            if (all.length) {
-                const lastWrapper = all[all.length - 1].parentElement;
+            const el = lastSeenElement;
 
-                if (lastWrapper && lastWrapper._meta) {
+            // ❌ prevent duplicate updates
+            if (el._seenTime) return;
 
-                    lastWrapper._meta.style.opacity = "0";
+            // 🔥 fade old state
+            el.style.transition = "opacity 0.25s ease";
+            el.style.opacity = "0";
 
-                    setTimeout(() => {
-                        lastWrapper._meta.textContent = "Seen just now";
+            setTimeout(() => {
 
-                        delete lastWrapper._meta._sentTime;
-                        lastWrapper._meta._seenTime = Date.now();
+                el.textContent = "Seen just now";
+                el.style.color = "#111";
 
-                        lastWrapper._meta.style.opacity = "1";
-                    }, 180);
-                }
-            }
+                // 🔥 CLEAN STATE
+                el._seenTime = Date.now();
+                delete el._sentTime;
+
+                el.style.opacity = "1";
+
+                lastSeenLocked = el;
+
+            }, 150);
         }
 
         // =========================
@@ -1973,12 +2107,7 @@ window.addEventListener("load", () => {
                         splash.style.display = "none";
 
                         smoothTransition(chatScreen, profileScreen);
-                        // 🔥 notify seen when entering chat
-                        if (socketReady) {
-                            socket.send(JSON.stringify({ type: "seen" }));
-                        }
                         activeScreen = "chat";
-
                     }, 400);
 
                 }, 800);
@@ -2189,14 +2318,15 @@ window.addEventListener("load", () => {
     }
 
     let isRefreshing = false; // Add this variable at the top of your script state
+    let suppressError = false;
 
     refreshBtn.onclick = () => {
         if (isRefreshing) return; 
 
         isRefreshing = true;
+        suppressError = true; // 🔥 BLOCK ERROR
         refreshBtn.classList.add("animate");
 
-        // 🔥 EXPIRE OLD CODE FIRST
         if (socketReady && myGeneratedCode) {
             socket.send(JSON.stringify({
                 type: "expire_code",
@@ -2204,12 +2334,13 @@ window.addEventListener("load", () => {
             }));
         }
 
-       generateCode();
+        generateCode();
         startTimer();
 
         setTimeout(() => {
             refreshBtn.classList.remove("animate");
             isRefreshing = false;
+            suppressError = false; // 🔥 ENABLE AGAIN
         }, 1100);
     };
 
@@ -2514,6 +2645,13 @@ window.addEventListener("load", () => {
 
             showEl.style.display = "flex";
 
+            // 🔥 BACKGROUND CONTROL
+            if (showEl === chatScreen) {
+                updateBackgroundVisibility("chat");
+            } else {
+                updateBackgroundVisibility("other");
+            }
+
             // 🔥 RESTORE ANIMATION CLEANLY
             if (showEl === pairingScreen) {
                 requestAnimationFrame(() => {
@@ -2662,62 +2800,58 @@ window.addEventListener("load", () => {
 
     window.addEventListener("resize", () => {
 
+        const viewport = window.visualViewport;
         const newHeight = window.innerHeight;
-        const keyboardOpen = newHeight < lastHeight - 100;
-
-        // 🔥 update app height
-        document.documentElement.style.setProperty('--app-height', `${newHeight}px`);
+        const keyboardOpen = newHeight < lastHeight - 80;
 
         const errorPill = document.getElementById("errorPill");
 
-        // =========================
-        // 🔥 ERROR PILL (KEEP)
-        // =========================
-        if (keyboardOpen) {
-            if (errorPill) {
-                errorPill.style.opacity = "0";
-                errorPill.style.display = "none";
-            }
+        // ✅ Update ONLY app height for layout (NOT background)
+        if (viewport) {
+            document.documentElement.style.setProperty(
+                '--app-height',
+                viewport.height + "px"
+            );
         }
 
-        // =========================
-        // 🔥 SCROLL FIX
-        // =========================
+        // ✅ Hide error pill on keyboard
+        if (keyboardOpen && errorPill) {
+            errorPill.style.opacity = "0";
+            errorPill.style.display = "none";
+        }
 
-        // ⚠️ IMPORTANT: ADD THIS LINE (YOU DON'T HAVE IT)
-        const messagesBox = document.querySelector(".messages");
         if (!messagesBox) return;
 
-        // detect if user is near bottom
-        const isNearBottom = () => {
-            return Math.abs(
-                messagesBox.scrollHeight - messagesBox.scrollTop - messagesBox.clientHeight
-            ) < 60;
+        const scrollToRealBottom = () => {
+            const input = document.querySelector(".chat-input");
+            const inputHeight = input ? input.offsetHeight : 0;
+
+            // 🔥 THIS IS THE FIX: account for input + keyboard
+            messagesBox.scrollTop =
+                messagesBox.scrollHeight - messagesBox.clientHeight + inputHeight;
         };
 
-        // 👉 KEYBOARD OPEN → FORCE SCROLL HARD
         if (keyboardOpen) {
+
+            // ❌ DON'T scroll if user is reading old messages
+            if (!isUserAtBottom) return;
 
             let tries = 0;
 
             const forceScroll = setInterval(() => {
-
-                messagesBox.scrollTop = messagesBox.scrollHeight;
-
+                scrollToRealBottom();
                 tries++;
+                if (tries > 15) clearInterval(forceScroll);
+            }, 25);
 
-                if (tries > 12) clearInterval(forceScroll);
+        } else {
 
-            }, 30);
-        }
+            // ❌ same here — only scroll if already at bottom
+            if (!isUserAtBottom) return;
 
-        // 👉 KEYBOARD CLOSE → SMART SCROLL
-        else {
-            if (isNearBottom()) {
-                setTimeout(() => {
-                    messagesBox.scrollTop = messagesBox.scrollHeight;
-                }, 80);
-            }
+            setTimeout(() => {
+                scrollToRealBottom();
+            }, 80);
         }
 
         lastHeight = newHeight;
@@ -2742,7 +2876,8 @@ window.addEventListener("load", () => {
       "background1.png",
       "background2.png",
       "background3.png",
-      "background4.png"
+      "background4.png",
+      "background5.png"
     ];
 
     let currentBgIndex = 0;
@@ -2752,13 +2887,8 @@ window.addEventListener("load", () => {
       const bg = chatBackgrounds[index];
 
       const chatScreen = document.getElementById("chatScreen");
-
-      if (!chatScreen) return;
-
-      chatScreen.style.backgroundImage = `url("assets/chat/${bg}")`;
-      chatScreen.style.backgroundSize = "cover";
-      chatScreen.style.backgroundPosition = "center";
-      chatScreen.style.backgroundRepeat = "no-repeat";
+      document.getElementById("fixedBg").style.backgroundImage =
+        `url("assets/chat/${bg}")`;
     }
 
     // 🎲 RANDOM ON START
@@ -2767,6 +2897,9 @@ window.addEventListener("load", () => {
 
       currentBgIndex = Math.floor(Math.random() * chatBackgrounds.length);
       applyChatBackground(currentBgIndex);
+
+      const bg = document.getElementById("fixedBg");
+      bg.style.opacity = "1"; // ✅ ONLY here visible
     }
 
     // 👉 NEXT BACKGROUND
@@ -2794,6 +2927,7 @@ window.addEventListener("load", () => {
     const chatInput = document.getElementById("chatInput");
     const sendBtn = document.getElementById("sendBtn");
     const bgBtn = document.getElementById("bgBtn");
+    const messagesBox = document.querySelector(".messages");
 
     chatInput.addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
@@ -2807,12 +2941,36 @@ window.addEventListener("load", () => {
             nextBackground();
         };
     }
-    const messagesBox = document.querySelector(".messages");
+
+    messagesBox.addEventListener("scroll", () => {
+        const threshold = 40;
+
+        const atBottom =
+            messagesBox.scrollHeight - messagesBox.scrollTop - messagesBox.clientHeight < threshold;
+
+        isUserAtBottom = atBottom;
+
+        checkSeenMessages();
+
+        // 🔥 USER CONTROL DETECTION
+        isUserScrolling = true;
+
+        clearTimeout(window.__scrollStopTimer);
+
+        window.__scrollStopTimer = setTimeout(() => {
+            isUserScrolling = false;
+        }, 120); // 🔥 tighter response
+    });
 
     // 🔥 SEND MESSAGE
     sendBtn.onclick = () => {
-        const text = chatInput.value.trim();
-        if (!text) return;
+        const rawText = chatInput.value;
+        const text = rawText.trim();
+
+        // ✅ allow emoji-only OR text
+        const hasEmoji = /\p{Extended_Pictographic}/u.test(rawText);
+
+        if (!text && !hasEmoji) return;
 
         // 🔥 INSTANT MESSAGE (LIKE WHATSAPP)
         addMessage(text, true, "sent");
@@ -2824,7 +2982,7 @@ window.addEventListener("load", () => {
             }));
 
         requestAnimationFrame(() => {
-            messagesBox.scrollTop = messagesBox.scrollHeight;
+            smoothScrollToBottom(messagesBox);
         });
 
         } else {
@@ -2836,7 +2994,7 @@ window.addEventListener("load", () => {
     // reset seen when sending new msg
 
     function isOnlyEmoji(text) {
-        return /^[\p{Emoji}\s]+$/u.test(text.trim());
+        return /^[\p{Extended_Pictographic}\s]+$/u.test(text.trim());
     }
 
     // 🔥 ADD MESSAGE TO UI
@@ -2852,33 +3010,109 @@ window.addEventListener("load", () => {
 
         msg.innerHTML = `<div class="msg-text">${text}</div>`;
 
-        // 🔥 EMOJI DETECTION
+        // 🔥 EMOJI DETECTION + LIMIT SYSTEM
         if (isOnlyEmoji(text)) {
-            msg.classList.add("emoji-only");
+
+            const emojis = text.match(/\p{Extended_Pictographic}/gu) || [];
+
+            // ❌ TOO MANY → NORMAL MESSAGE
+            if (emojis.length > 13) {
+                // do nothing → stays normal msg bubble
+            } else {
+                msg.classList.add("emoji-only");
+
+                // 🔥 SPLIT INTO ROWS (7 PER ROW)
+                const rows = [];
+                for (let i = 0; i < emojis.length; i += 7) {
+                    rows.push(emojis.slice(i, i + 7).join(""));
+                }
+
+                msg.innerHTML = ""; // clear
+
+                const emojiNode = renderEmojiMessage(text);
+                msg.appendChild(emojiNode);
+            }
         }
 
         wrapper.appendChild(msg);
 
+        if (isUserAtBottom) {
+            requestAnimationFrame(() => {
+                messagesBox.scrollTop = messagesBox.scrollHeight;
+            });
+        }
+
         // ✅ ONLY FOR YOUR MESSAGES
         if (isMe) {
+
+            // ✅ ONLY clear previous visible meta safely
+            if (lastSeenLocked) {
+
+                const old = lastSeenLocked;
+
+                old.style.transition = "opacity 0.25s ease";
+                old.style.opacity = "0";
+
+                setTimeout(() => {
+                    if (old.parentNode) old.remove();
+                }, 250);
+
+                lastSeenLocked = null;
+                lastSeenElement = null; // 🔥 IMPORTANT FIX
+            }
+
             const meta = document.createElement("div");
             meta.className = "msg-meta";
             meta.textContent = "Sent just now";
+            meta.style.color = "rgba(255,255,255,0.65)";
 
+            // 🔥 FORCE CLEAN STATE
             meta._sentTime = Date.now();
+            meta._seenTime = null;
 
             wrapper.appendChild(meta);
-            wrapper._meta = meta;
+
+            // ✅ TRACK ONLY THIS MESSAGE
+            lastSeenElement = meta;
+            lastSeenLocked = meta;
         }
 
         messagesBox.appendChild(wrapper);
 
         msg.classList.add("pop-in");
+        requestAnimationFrame(() => {
+            checkSeenMessages();
+        });
 
         // 🔥 FORCE SCROLL ALWAYS
-        requestAnimationFrame(() => {
-            messagesBox.scrollTop = messagesBox.scrollHeight;
-        });
+        if (isUserAtBottom && !isUserScrolling) {
+            requestAnimationFrame(() => {
+                messagesBox.scrollTop = messagesBox.scrollHeight;
+            });
+        }
+    }
+
+    function checkSeenMessages() {
+        const incomingMsgs = document.querySelectorAll(".incoming");
+
+        if (!incomingMsgs.length) return;
+
+        // 👉 ONLY LAST INCOMING MESSAGE MATTERS
+        const lastMsg = incomingMsgs[incomingMsgs.length - 1];
+
+        const rect = lastMsg.getBoundingClientRect();
+
+        const fullyVisible =
+            rect.top >= 0 &&
+            rect.bottom <= window.innerHeight;
+    
+        if (fullyVisible && !lastMsg._seenSent) {
+            lastMsg._seenSent = true;
+
+            if (socketReady) {
+                socket.send(JSON.stringify({ type: "seen" }));
+            }
+        }
     }
     
     function addBubbleEffect(btn) {
@@ -2908,36 +3142,82 @@ window.addEventListener("load", () => {
       document.querySelector(".messages").appendChild(typing);
     }
 
-    function updateSeenTimes() {
+    function renderEmojiMessage(text) {
+      const container = document.createElement("div");
+      container.className = "emoji-only";
 
-        document.querySelectorAll(".msg-meta").forEach(meta => {
+      const emojis = text.match(/\p{Extended_Pictographic}/gu) || [];
 
-            // SENT TIME
-            if (meta._sentTime) {
-                const diff = Math.floor((Date.now() - meta._sentTime) / 1000);
+      const maxPerRow = 7; // 🔥 FIXED MAX (LIKE WHATSAPP)
 
-                if (diff < 60) {
-                    meta.textContent = "Sent just now";
-                } else if (diff < 3600) {
-                    meta.textContent = "Sent " + Math.floor(diff / 60) + "m ago";
-                } else {
-                    meta.textContent = "Sent " + Math.floor(diff / 3600) + "h ago";
-                }
-            }
+      for (let i = 0, rowIndex = 0; i < emojis.length; i += maxPerRow, rowIndex++) {
+        const row = document.createElement("div");
 
-            // SEEN TIME
-            if (meta._seenTime) {
-                const diff = Math.floor((Date.now() - meta._seenTime) / 1000);
+        row.style.display = "flex";
+        row.style.justifyContent = "center";
+        // 🎯 DEFAULT (tight)
+        row.style.gap = "1px";
+        row.style.margin = "0px";
 
-                if (diff < 60) {
-                    meta.textContent = "Seen just now";
-                } else if (diff < 3600) {
-                    meta.textContent = "Seen " + Math.floor(diff / 60) + "m ago";
-                } else {
-                    meta.textContent = "Seen " + Math.floor(diff / 3600) + "h ago";
-                }
-            }
+        // ⭐ ONLY SECOND ROW (index 1)
+        if (rowIndex === 1) {
+          row.style.gap = "6px";   // 👈 increase horizontal spacing
+          row.style.margin = "2px 0"; // 👈 optional slight vertical boost
+        }
+
+        const slice = emojis.slice(i, i + maxPerRow);
+
+        slice.forEach((emoji, index) => {
+          const span = document.createElement("span");
+          span.textContent = emoji;
+
+          // 🎬 POP ANIMATION
+          span.style.transform = "scale(0)";
+          span.style.opacity = "0";
+
+          row.appendChild(span);
+
+          setTimeout(() => {
+            span.style.transition = "transform 0.25s ease, opacity 0.2s ease";
+            span.style.transform = "scale(1.2)";
+            span.style.opacity = "1";
+
+            setTimeout(() => {
+              span.style.transform = "scale(1)";
+            }, 120);
+
+          }, (i + index) * 20);
         });
+
+        container.appendChild(row);
+      }
+
+      return container;
+    }
+
+    function updateSeenTimes() {
+    
+        if (!lastSeenLocked) return;
+
+        const meta = lastSeenLocked;
+
+        // 🔥 ONLY ONE STATE ACTIVE
+
+        if (meta._seenTime) {
+            const diff = Math.floor((Date.now() - meta._seenTime) / 1000);
+
+            if (diff < 60) meta.textContent = "Seen just now";
+            else if (diff < 3600) meta.textContent = "Seen " + Math.floor(diff / 60) + "m ago";
+            else meta.textContent = "Seen " + Math.floor(diff / 3600) + "h ago";
+
+        } else if (meta._sentTime) {
+
+            const diff = Math.floor((Date.now() - meta._sentTime) / 1000);
+
+            if (diff < 60) meta.textContent = "Sent just now";
+            else if (diff < 3600) meta.textContent = "Sent " + Math.floor(diff / 60) + "m ago";
+            else meta.textContent = "Sent " + Math.floor(diff / 3600) + "h ago";
+        }
     }
 
     setInterval(updateSeenTimes, 1000);
@@ -2959,7 +3239,7 @@ window.addEventListener("load", () => {
 
         messagesBox.appendChild(typing);
         requestAnimationFrame(() => {
-            messagesBox.scrollTop = messagesBox.scrollHeight;
+            smoothScrollToBottom(messagesBox);
         });
     }
 
@@ -2968,8 +3248,47 @@ window.addEventListener("load", () => {
         if (t) t.remove();
     }
 
+    function smoothScrollToBottom(el) {
+      // ❌ STOP if user is scrolling
+      if (isUserScrolling) return;
+
+      const start = el.scrollTop;
+      const end = el.scrollHeight - el.clientHeight;
+
+      const duration = 350; // 🔥 faster & responsive (not 3s)
+      let startTime = null;
+
+      function animate(time) {
+        // ❌ STOP instantly if user starts scrolling
+        if (isUserScrolling) return;
+
+        if (!startTime) startTime = time;
+
+        const progress = time - startTime;
+        const t = Math.min(progress / duration, 1);
+
+        const ease = 1 - Math.pow(1 - t, 3);
+
+        el.scrollTop = start + (end - start) * ease;
+
+        if (t < 1) requestAnimationFrame(animate);
+      }
+    
+      requestAnimationFrame(animate);
+    }
+
     function isAtBottom() {
         return Math.abs(messagesBox.scrollHeight - messagesBox.scrollTop - messagesBox.clientHeight) < 20;
+    }
+
+    function updateBackgroundVisibility(screen) {
+        const bg = document.getElementById("fixedBg");
+
+        if (screen === "chat") {
+            bg.style.opacity = "1";
+        } else {
+            bg.style.opacity = "0";
+        }
     }
 });
 </script>
