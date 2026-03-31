@@ -400,6 +400,20 @@ async def websocket_endpoint(ws: WebSocket):
                         "is_self": uid == user_id
                     })
            
+            elif msg_type == "typing":
+                if not current_code:
+                    continue
+
+                room = rooms.get(current_code)
+                if not room:
+                    continue
+
+                for uid, u in room["users"].items():
+                    if uid != user_id:
+                        await u.send_json({
+                            "type": "typing"
+                        })
+
             elif msg_type == "seen":
                 if not current_code:
                      continue
